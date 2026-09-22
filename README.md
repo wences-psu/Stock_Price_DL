@@ -65,7 +65,7 @@ Open the notebooks in order:
 ## Documentation
 
 | Guide |
-|---|---|
+|---|
 | [`docs/01_crisp_dm_workflow.md`](docs/01_crisp_dm_workflow.md) |
 | [`docs/02_time_series_concepts.md`](docs/02_time_series_concepts.md) |
 | [`docs/03_deep_learning_models.md`](docs/03_deep_learning_models.md) |
