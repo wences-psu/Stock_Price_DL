@@ -39,7 +39,18 @@ Stock_Price/
 
 The project was built and tested with Python 3.9, TensorFlow 2.10.1 (the last TensorFlow release with native GPU support on Windows).
 
-To create a fresh environment instead:
+### First-time clone
+
+If you do not have the project on your computer yet, open PowerShell or Git Bash on Windows, Terminal on macOS, or a terminal on Linux and run:
+
+```bash
+git clone https://github.com/wences-psu/Stock_Price_DL.git
+cd Stock_Price_DL
+```
+
+You only need to clone the project once on each computer. After cloning, use the team workflow in [`docs/git-workflow.md`](docs/git-workflow.md) to create a branch, update your local copy, and share changes through a pull request. The commands are the same across Windows, macOS, and Linux.
+
+To create a fresh environment:
 ```bash
 conda create -n stock-dl python=3.9 -y
 conda activate stock-dl
@@ -71,5 +82,15 @@ Open the notebooks in order:
 | [`docs/03_deep_learning_models.md`](docs/03_deep_learning_models.md) |
 | [`docs/04_evaluation_metrics.md`](docs/04_evaluation_metrics.md) |
 | [`docs/05_deployment.md`](docs/05_deployment.md) |
+
+## Collaboration
+
+| Resource | Purpose |
+|---|---|
+| [`docs/git-workflow.md`](docs/git-workflow.md) | Beginner-friendly Git workflow, recovery commands, platform notes, and VS Code/PyCharm instructions. |
+| [`AGENTS.md`](AGENTS.md) | Shared project rules for agents, coding style, notebooks, and safe Git operations. |
+| [`.github/skills/git-workflow/SKILL.md`](.github/skills/git-workflow/SKILL.md) | On-demand instructions for asking an agent to safely inspect, sync, branch, commit, or push. |
+
+Each teammate should work on a short-lived branch and merge into `main` through a pull request after the other teammate reviews the changes. Do not commit directly to `main`.
 
 ---
