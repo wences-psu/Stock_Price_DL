@@ -1,4 +1,4 @@
-# Next-day stock price prediction with deep learning (Keras / TensorFlow)
+# Next day stock price prediction with deep learning (Keras / TensorFlow)
 
 A project that predicts the **next trading day's closing price** of Apple (AAPL) with LSTM, GRU and 1D-CNN networks. It includes a switch to add **trading volume** as an input, to measure whether volume improves the prediction.
 
@@ -39,7 +39,7 @@ Stock_Price/
 
 The project was built and tested with Python 3.9, TensorFlow 2.10.1 (the last TensorFlow release with native GPU support on Windows).
 
-### First-time clone
+### First time clone
 
 If you do not have the project on your computer yet, open PowerShell or Git Bash on Windows, Terminal on macOS, or a terminal on Linux and run:
 
@@ -87,10 +87,10 @@ Open the notebooks in order:
 
 | Resource | Purpose |
 |---|---|
-| [`docs/git-workflow.md`](docs/git-workflow.md) | Beginner-friendly Git workflow, recovery commands, platform notes, and VS Code/PyCharm instructions. |
+| [`docs/git-workflow.md`](docs/git-workflow.md) | Git workflow, recovery commands, platform notes, and VS Code/PyCharm instructions. |
 | [`AGENTS.md`](AGENTS.md) | Shared project rules for agents, coding style, notebooks, and safe Git operations. |
-| [`.github/skills/git-workflow/SKILL.md`](.github/skills/git-workflow/SKILL.md) | On-demand instructions for asking an agent to safely inspect, sync, branch, commit, or push. |
+| [`.github/skills/git-workflow/SKILL.md`](.github/skills/git-workflow/SKILL.md) | On demand instructions for asking an agent to safely inspect, sync, branch, commit, or push. |
 
-Each teammate should work on a short-lived branch and merge into `main` through a pull request after the other teammate reviews the changes. Do not commit directly to `main`.
+Each teammate should work on a short lived branch and merge into `main` through a pull request after the other teammate reviews the changes. Do not commit directly to `main`.
 
 ---

@@ -1,21 +1,21 @@
-# Git Workflow for Our Two-Person Team
+# Git Workflow for Our Team
 
 This guide keeps collaboration predictable. The short version is: update your local copy, create a branch for one task, save small commits, push the branch, open a pull request, get a review, and then merge into `main`.
 
 ## Our Team Rules
 
 - `main` should always be in a usable state. Do not work directly on it.
-- Use one short-lived branch per task, such as `feature/add-model-metrics` or `docs/update-readme`.
+- Use one branch per task, such as `feature/add-model-metrics` or `docs/update-readme`.
 - Pull requests are the normal way to merge work into `main`.
 - One teammate reviews the pull request before it is merged.
 - Keep commits focused and describe what changed.
 - Do not commit passwords, API keys, local environments, downloaded data, model files, or generated artifacts. Check `.gitignore` when unsure.
-- Avoid editing the same notebook at the same time. Notebook conflicts are harder to resolve than ordinary text-file conflicts.
+- Avoid editing the same notebook at the same time. Notebook conflicts are harder to resolve than ordinary text file conflicts.
 - Never use `git push --force` on a shared branch.
 
 If Git reports something unexpected, stop and check `git status` before running another command.
 
-## First-Time Setup
+## First Time Setup
 
 ### Install Git
 
@@ -45,7 +45,7 @@ The remote is usually named `origin`, and the default branch is `main`.
 
 ## The Normal Daily Workflow
 
-### 1. Start from an up-to-date `main`
+### 1. Start from current `main`
 
 Do this before starting a new task:
 
@@ -182,7 +182,7 @@ Ask before changing commits that someone else may already have pulled.
 
 If the conflict is confusing, do not guess. Save a copy of your work and ask your teammate or an agent for help.
 
-To cancel an in-progress merge when appropriate:
+To cancel an in progress merge when appropriate:
 
 ```bash
 git merge --abort
@@ -192,7 +192,7 @@ git merge --abort
 
 1. Open the cloned `Stock_Price_DL` folder.
 2. Select the Source Control icon in the Activity Bar.
-3. Use the branch indicator in the bottom-left corner to switch to `main`, then use **Sync Changes** to pull updates.
+3. Use the branch indicator in the bottom left corner to switch to `main`, then use **Sync Changes** to pull updates.
 4. Use **Create Branch** to create a task branch before editing.
 5. Review changed files and the inline diff in Source Control.
 6. Enter a commit message, stage the intended files with the `+` button, and select **Commit**.
@@ -204,7 +204,7 @@ The graphical actions run the same Git operations as the terminal commands. When
 ## PyCharm Git
 
 1. Open the cloned `Stock_Price_DL` folder as a project.
-2. Use the branch widget in the bottom-right corner to check out `main`, then choose **Update Project** to pull changes.
+2. Use the branch widget in the bottom right corner to check out `main`, then choose **Update Project** to pull changes.
 3. Use the branch widget and choose **New Branch** before starting a task.
 4. Open the **Commit** tool window to review diffs, select only the intended files, and enter a commit message.
 5. Select **Commit and Push** to upload the branch, or commit first and push later from the **Git** menu.
@@ -219,7 +219,7 @@ The Git workflow is shared across all three systems. Use the terminal built into
 
 - Windows PowerShell commonly uses paths like `C:\Users\Name\Stock_Price_DL`; Git commands still use forward slashes in repository paths when convenient.
 - macOS and Linux commonly use paths like `/Users/name/Stock_Price_DL` or `/home/name/Stock_Price_DL`.
-- Windows users may use Git Bash for Unix-like commands. PowerShell commands such as `Get-Location` are not Git commands and are not needed for this guide.
+- Windows users may use Git Bash for Unix like commands. PowerShell commands such as `Get-Location` are not Git commands and are not needed for this guide.
 - Do not commit virtual environments. Keep environment setup local to each computer.
 - Run notebooks in the same order documented in the root README. Keep large downloaded data and generated artifacts out of Git unless the team explicitly decides otherwise.
 
