@@ -1,2 +1,5 @@
 /artifacts/*
 /data/*
+**/__pycache__/
+*.pyc
+**/.vscode/
