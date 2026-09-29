@@ -16,6 +16,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 from cycler import cycler
 from matplotlib.ticker import FuncFormatter
 
@@ -114,5 +115,28 @@ def plot_price_and_volume(df: pd.DataFrame, title: str = f"{config.TICKER} close
     ax_vol.plot(df.index, volume_m, color=SERIES[0], linewidth=0.6)
     ax_vol.set_title("Daily volume (millions of shares)")
     ax_vol.set_ylim(bottom=0)
+    fig.tight_layout()
+    return fig
+
+
+def plot_return_distribution(returns: pd.Series, title: str = "Distribution of daily log returns") -> plt.Figure:
+    """
+    Histogram of daily log returns with a normal curve of the same mean/std.
+    The normal curve is not a fit, just a reference to show how fat the tails are.
+    """
+    returns = returns.dropna()
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    ax.hist(
+        returns, bins=120, density=True, color=SERIES[0], alpha=0.85,
+        edgecolor=COLORS["surface"], linewidth=0.4, label="Observed returns",
+    )
+    x = np.linspace(returns.min(), returns.max(), 400)
+    mu, sigma = returns.mean(), returns.std()
+    normal_pdf = np.exp(-0.5 * ((x - mu) / sigma) ** 2) / (sigma * np.sqrt(2 * np.pi))
+    ax.plot(x, normal_pdf, color=SERIES[1], label="Normal distribution (same mean/std)")
+    ax.set_title(title)
+    ax.set_xlabel("log return")
+    ax.set_ylabel("density")
+    ax.legend(loc="upper left")
     fig.tight_layout()
     return fig
