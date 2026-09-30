@@ -10,7 +10,8 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent
 
-DATA_PATH = PROJECT_ROOT / "data" / "SnP_daily_update.csv"   # raw input data
+DATA_DIR = PROJECT_ROOT / "data"                             # data directory
+DATA_PATH = DATA_DIR / "SnP_daily_update.csv"                # raw input data
 ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"                   # trained models, scalers, metadata
 PLOTS_DIR = ARTIFACTS_DIR / "plots"                          # figures saved by the evaluation step
 METRICS_PATH = ARTIFACTS_DIR / "metrics.csv"                 # model comparison table
