@@ -23,8 +23,8 @@ import pandas as pd
 import config
 
 # Columns every downstream step expects to find.
-REQUIRED_COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
-PRICE_COLUMNS = ["Open", "High", "Low", "Close"]
+REQUIRED_COLUMNS = ['Close', 'High', 'Low', 'Open', 'Volume']
+PRICE_COLUMNS = ['Close', 'High', 'Low', 'Open']
 
 
 def validate_stock_data(df: pd.DataFrame) -> List[str]:
@@ -54,7 +54,7 @@ def validate_stock_data(df: pd.DataFrame) -> List[str]:
     if not df.index.is_monotonic_increasing:
         raise ValueError("Dates are not sorted in ascending order.")
 
-    # Non-fatal checks: report them so a human can decide.
+    # Report warnings.
     warnings = []
     bad_high_low = df.index[df["High"] < df["Low"]]
     if len(bad_high_low):
@@ -90,15 +90,12 @@ def load_stock_data(
     sorted oldest -> newest.
     """
     df = pd.read_csv(
-    config.DATA_PATH,
+    source,
     header=[0, 1],      # first two rows are headers
     skiprows=[2],       # skip the empty third row
     index_col=0,        # first column is the Date
     parse_dates=True    # convert Date to datetime
 )
-
-    if "Date" not in df.columns:
-        raise ValueError("The CSV must contain a 'Date' column.")
 
     if ticker is not None:
         if isinstance(df.columns, pd.MultiIndex):
@@ -109,7 +106,7 @@ def load_stock_data(
             raise ValueError("Ticker filtering requested but the data has no MultiIndex.")
 
     # sort chronologically.
-    df = df.sort_values("Date").drop_duplicates(subset="Date", keep="last").set_index("Date")
+    df = df.sort_index()
 
     # Volume as float so later math (log, diff) behaves uniformly.
     df["Volume"] = df["Volume"].astype(float)
@@ -130,7 +127,7 @@ def load_stock_data(
         for warning in warnings:
             print(f"[data] warning (whole file): {warning}")
         print(
-            f"[data] Loaded {len(df):,} rows from {df.index.min().date()} "
+            f"[data] Loaded {len(df)} rows from {df.index.min().date()} "
             f"to {df.index.max().date()}."
         )
     return df
