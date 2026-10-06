@@ -13,6 +13,7 @@ Design:
 """
 
 from pathlib import Path
+from typing import Dict, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -137,6 +138,23 @@ def plot_return_distribution(returns: pd.Series, title: str = "Distribution of d
     ax.set_title(title)
     ax.set_xlabel("log return")
     ax.set_ylabel("density")
+    ax.legend(loc="upper left")
+    fig.tight_layout()
+    return fig
+
+
+def plot_split_timeline(
+    frame: pd.DataFrame, boundaries: Dict[str, Tuple[int, int]], title: str = "Chronological train / validation / test split"
+) -> plt.Figure:
+    """Closing price colored by the split each day belongs to."""
+    labels = {"train": "Train", "val": "Validation", "test": "Test"}
+    fig, ax = plt.subplots(figsize=(11, 4.2))
+    for name, (start, end) in boundaries.items():
+        part = frame.iloc[start:end]
+        first, last = part.index.min().date(), part.index.max().date()
+        ax.plot(part.index, part["Close"], color=SPLIT_COLORS[name], label=f"{labels[name]}: {first} to {last}")
+    ax.set_title(title)
+    _dollar_axis(ax)
     ax.legend(loc="upper left")
     fig.tight_layout()
     return fig

@@ -85,11 +85,11 @@ def add_target(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
     if isinstance(df.columns, pd.MultiIndex):
         out["next_close", ticker] = out["Close", ticker].shift(-1)
         out["target_date"] = out.index.to_series().shift(-1)
-        out["target", ticker] = out["log_return", ticker]
+        out["target", ticker] = out["log_return", ticker].shift(-1)
     else:
         out["next_close"] = out["Close"].shift(-1)
         out["target_date"] = out.index.to_series().shift(-1)
-        out["target"] = out["log_return"]
+        out["target"] = out["log_return"].shift(-1)
     return out
 
 
