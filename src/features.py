@@ -20,6 +20,9 @@ import numpy as np
 import pandas as pd
 import config
 
+# Price only features.
+PRICE_FEATURES = ["log_return"]
+
 # Extra inputs added when volume is included.
 VOLUME_FEATURES = ["log_volume", "volume_change"]
 
@@ -58,6 +61,7 @@ def get_feature_columns(use_volume: bool) -> list:
     use_volume=False -> ["log_return"]                                  (price only)
     use_volume=True  -> ["log_return", "log_volume", "volume_change"]   (price + volume)
     """
+    columns = PRICE_FEATURES.copy()
     if use_volume:
         columns += VOLUME_FEATURES
     return columns
@@ -68,8 +72,8 @@ def add_target(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
     Add the prediction target for each row t, which describes day t+1.
 
     shift(-1) moves every value one row UP, so row t receives tomorrow's value.
-    The last row gets NaN because its "tomorrow" is not in the data yet -
-    that is exactly the day we will predict in deployment.
+    The last row gets NaN because its tomorrow is not in the data yet;
+    that is the day to predict in deployment.
 
     Columns added
     -------------
@@ -81,11 +85,11 @@ def add_target(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
     if isinstance(df.columns, pd.MultiIndex):
         out["next_close", ticker] = out["Close", ticker].shift(-1)
         out["target_date"] = out.index.to_series().shift(-1)
-        out["target", ticker] = out["log_return", ticker]
+        out["target", ticker] = out["log_return", ticker].shift(-1)
     else:
         out["next_close"] = out["Close"].shift(-1)
         out["target_date"] = out.index.to_series().shift(-1)
-        out["target"] = out["log_return"]
+        out["target"] = out["log_return"].shift(-1)
     return out
 
 
