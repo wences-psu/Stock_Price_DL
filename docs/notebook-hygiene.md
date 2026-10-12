@@ -7,11 +7,12 @@ Notebooks store more than code: outputs, execution counts, and the kernel and Py
 ```bash
 python -m pip install -r requirements.txt
 nbstripout --install
+git config filter.nbstripout.extrakeys "metadata.kernelspec metadata.language_info"
 git config core.autocrlf false
 git config core.eol lf
 ```
 
-`nbstripout --install` writes to your local `.git/config`, so every teammate must run it once. The `.gitattributes` file in the repo already tells Git which files to filter.
+`nbstripout --install` writes to your local `.git/config`, so every teammate must run it once. The `extrakeys` line is required: by default `nbstripout` removes outputs and execution counts but keeps the kernel and Python version, which are the main cause of metadata conflicts. The `.gitattributes` file in the repo already tells Git which files to filter.
 
 Editor settings:
 
@@ -28,6 +29,14 @@ Editor settings:
 | Editor checkpoint files in Git | `.ipynb_checkpoints/` is ignored and no longer tracked |
 
 Your local notebook still shows its outputs. Only the committed copy is stripped.
+
+Notebooks in Git have no saved kernel. The first time you open one, choose your own kernel. That choice stays on your computer.
+
+To strip a notebook by hand (for example after a merge), run:
+
+```bash
+nbstripout --extra-keys "metadata.kernelspec metadata.language_info" notebooks/*.ipynb
+```
 
 ## Daily habits
 
