@@ -223,7 +223,7 @@ def load_prepared_data(
     """
     df = load_stock_data(data_path, start_date=start_date, verbose=verbose)
     frame = build_modeling_frame(df, target_mode)
-    feature_columns = get_feature_columns(use_volume, target_mode)
+    feature_columns = get_feature_columns(use_volume)
     return prepare_data(
         frame,
         feature_columns,
