@@ -42,6 +42,7 @@ pip-wheel-metadata/
 .idea/**/usage.statistics.xml
 .idea/**/shelf/
 .idea/**/dataSources.local.xml
+.idea/
 
 # Local environment files; keep an example template versioned
 .env
