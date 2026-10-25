@@ -34,6 +34,16 @@ from src.data_loader import load_stock_data  # noqa: E402
 from src.features import build_inference_frame  # noqa: E402
 
 
+def find_model_file(artifact_dir):
+    artifact_dir = Path(artifact_dir)
+
+    for file in artifact_dir.iterdir():
+        if file.suffix in {".keras", ".h5"}:
+            return file
+
+    return None
+
+
 def load_artifacts(artifact_dir: Union[str, Path]) -> dict:
     """
     Load a trained run: Keras model, both scalers and metadata.
@@ -44,14 +54,17 @@ def load_artifacts(artifact_dir: Union[str, Path]) -> dict:
     from tensorflow import keras  # imported here so `--help` stays fast
 
     artifact_dir = Path(artifact_dir)
-    if not (artifact_dir / "model.h5").exists():
-        raise FileNotFoundError(f"No model.h5 in {artifact_dir}. Train a model first (python -m src.train).")
+    model_file = find_model_file(artifact_dir)
+    if model_file is None:
+        raise FileNotFoundError(
+            f"No model.keras or model.h5 in {artifact_dir}. Train a model first (python -m src.train)."
+        )
 
     with open(artifact_dir / "metadata.json", "r", encoding="utf-8") as f:
         metadata = json.load(f)
 
     return {
-        "model": keras.models.load_model(artifact_dir / "model.h5", compile=False),
+        "model": keras.models.load_model(model_file, compile=False),
         "feature_scaler": joblib.load(artifact_dir / "feature_scaler.joblib"),
         "target_scaler": joblib.load(artifact_dir / "target_scaler.joblib"),
         "metadata": metadata,
@@ -64,7 +77,7 @@ def list_artifact_dirs(artifacts_dir: Union[str, Path] = config.ARTIFACTS_DIR) -
     artifacts_dir = Path(artifacts_dir)
     if not artifacts_dir.exists():
         return []
-    return sorted(p for p in artifacts_dir.iterdir() if (p / "model.h5").exists())
+    return sorted(p for p in artifacts_dir.iterdir() if find_model_file(p) is not None)
 
 
 def predict_next_day(

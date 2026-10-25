@@ -7,7 +7,7 @@ Usage from the command line (run from the project root):
     python -m src.train --model all --compare-volume    # every model, with and without volume
 
 What gets saved (one folder per run, e.g. artifacts/lstm_close_volume/):
-    model.h5               trained Keras model (weights of the best validation epoch)
+    model.keras / model.h5 trained Keras model (best validation epoch); .keras on Keras >= 2.12, else .h5
     feature_scaler.joblib  scaler fitted on training inputs
     target_scaler.joblib   scaler fitted on training targets
     metadata.json          settings needed to reproduce preprocessing at prediction time
@@ -39,6 +39,11 @@ from tensorflow import keras  # noqa: E402
 import config  # noqa: E402
 from src.models import build_model  # noqa: E402
 from src.preprocessing import PreparedData, load_prepared_data  # noqa: E402
+
+
+# The native .keras format was introduced in Keras 2.12; older versions use HDF5.
+KERAS_VERSION = tuple(int(p) for p in keras.__version__.split(".")[:2])
+MODEL_FILENAME = "model.keras" if KERAS_VERSION >= (2, 12) else "model.h5"
 
 
 @dataclass
@@ -117,7 +122,7 @@ def train_model(
             monitor="val_loss", factor=0.5, patience=max(1, patience // 2), min_lr=1e-5, verbose=1
         ),
         # Save the best model seen so far to disk (useful if training is interrupted).
-        keras.callbacks.ModelCheckpoint(str(out_dir / "model.h5"), monitor="val_loss", save_best_only=True),
+        keras.callbacks.ModelCheckpoint(str(out_dir / MODEL_FILENAME), monitor="val_loss", save_best_only=True),
     ]
 
     # ---- 4. Fit ------------------------------------------------------------
@@ -140,7 +145,7 @@ def train_model(
 
     # ---- 5. Save artifacts ---------------------------------------------------
     # EarlyStopping restored the best weights, so this saves the best model.
-    model.save(out_dir / "model.h5")
+    model.save(out_dir / MODEL_FILENAME)
     joblib.dump(data.feature_scaler, out_dir / "feature_scaler.joblib")
     joblib.dump(data.target_scaler, out_dir / "target_scaler.joblib")
 
