@@ -11,8 +11,8 @@ Responsibilities
 Baselines Comparison
 --------------------
 Tomorrow's close is usually very close to today's close. So the trivial
-prediction "tomorrow = today" already has a small error (roughly 1-2% of the
-price). That is why the model should compare against baselines.
+prediction "tomorrow = today" already has a small error. 
+That is why the model should compare against baselines.
 
 Plots live in src/plotting.py.
 """

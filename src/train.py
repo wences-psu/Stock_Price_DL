@@ -1,11 +1,6 @@
 """
 train.py - CRISP-DM phase 4: Modeling (training + saving artifacts).
 
-Usage from the command line (run from the project root):
-    python -m src.train --model lstm                    # price only
-    python -m src.train --model lstm --use-volume       # price + volume
-    python -m src.train --model all --compare-volume    # every model, with and without volume
-
 What gets saved (one folder per run, e.g. artifacts/lstm_close_volume/):
     model.keras / model.h5 trained Keras model (best validation epoch); .keras on Keras >= 2.12, else .h5
     feature_scaler.joblib  scaler fitted on training inputs
@@ -28,17 +23,16 @@ from typing import Optional
 import joblib
 import numpy as np
 
-# Allow `python src/train.py` as well as `python -m src.train`.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import tensorflow as tf  # noqa: E402
-from tensorflow import keras  # noqa: E402
+import tensorflow as tf
+from tensorflow import keras
 
-import config  # noqa: E402
-from src.models import build_model  # noqa: E402
-from src.preprocessing import PreparedData, load_prepared_data  # noqa: E402
+import config
+from src.models import build_model
+from src.preprocessing import PreparedData, load_prepared_data
 
 
 # The native .keras format was introduced in Keras 2.12; older versions use HDF5.
@@ -98,20 +92,20 @@ def train_model(
     out_dir.mkdir(parents=True, exist_ok=True)
     print(f"\n=== Training run: {name} ===")
 
-    # ---- 1. Data preparation (see src/preprocessing.py) --------------------
+    # Data preparation (see src/preprocessing.py)
     data = load_prepared_data(
         use_volume=use_volume, target_mode=target_mode, lookback=lookback, start_date=start_date
     )
     train, val = data.splits["train"], data.splits["val"]
     print(f"[train] features={data.feature_columns}  X_train={train.X.shape}  X_val={val.X.shape}")
 
-    # ---- 2. Build the network (see src/models.py) --------------------------
+    # Build the network (see src/models.py)
     input_shape = train.X.shape[1:]  # (lookback, n_features)
     model = build_model(model_name, input_shape, learning_rate=learning_rate)
     if verbose:
         model.summary()
 
-    # ---- 3. Callbacks: code Keras runs at the end of each epoch ------------
+    # Callbacks: code Keras runs at the end of each epoch
     callbacks = [
         # Stop when validation loss has not improved for `patience` epochs and
         # roll back to the best weights -> prevents overfitting and wasted time.
@@ -125,8 +119,8 @@ def train_model(
         keras.callbacks.ModelCheckpoint(str(out_dir / MODEL_FILENAME), monitor="val_loss", save_best_only=True),
     ]
 
-    # ---- 4. Fit ------------------------------------------------------------
-    # shuffle=True shuffles the ORDER OF WINDOWS inside the training set only.
+    # Fit
+    # shuffle=True shuffles the order of windows inside the training set only.
     # That is safe: each window is a self-contained (past -> next day) example,
     # and validation/test data stay strictly later in time. Shuffling makes
     # mini-batches less correlated, which usually helps gradient descent.
@@ -143,7 +137,7 @@ def train_model(
     )
     train_seconds = time.time() - start
 
-    # ---- 5. Save artifacts ---------------------------------------------------
+    # Save artifacts
     # EarlyStopping restored the best weights, so this saves the best model.
     model.save(out_dir / MODEL_FILENAME)
     joblib.dump(data.feature_scaler, out_dir / "feature_scaler.joblib")

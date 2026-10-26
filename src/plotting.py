@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from cycler import cycler
+from matplotlib.patches import Patch
 from matplotlib.ticker import FuncFormatter
 
 import config
@@ -155,6 +156,134 @@ def plot_split_timeline(
         ax.plot(part.index, part["Close"], color=SPLIT_COLORS[name], label=f"{labels[name]}: {first} to {last}")
     ax.set_title(title)
     _dollar_axis(ax)
+    ax.legend(loc="upper left")
+    fig.tight_layout()
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# Modeling and evaluation plots
+# ---------------------------------------------------------------------------
+def plot_history(history: dict, title: str = "Learning curves") -> plt.Figure:
+    """
+    Training vs validation loss per epoch.
+    The dot marks the best validation epoch.
+    """
+    epochs = np.arange(1, len(history["loss"]) + 1)
+    best = int(np.argmin(history["val_loss"]))
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(epochs, history["loss"], color=SERIES[0], label="Training loss")
+    ax.plot(epochs, history["val_loss"], color=SERIES[1], label="Validation loss")
+    ax.scatter(
+        [epochs[best]], [history["val_loss"][best]], s=40, color=SERIES[1],
+        edgecolor=COLORS["surface"], linewidth=1.5, zorder=3,
+    )
+    ax.annotate(
+        f"best epoch {epochs[best]}", (epochs[best], history["val_loss"][best]),
+        textcoords="offset points", xytext=(6, 8), color=COLORS["ink_secondary"], fontsize=9,
+    )
+    ax.set_title(title)
+    ax.set_xlabel("epoch")
+    ax.set_ylabel("Huber loss (scaled target)")
+    ax.legend(loc="upper right")
+    fig.tight_layout()
+    return fig
+
+
+def plot_predictions(
+    pred_df: pd.DataFrame,
+    title: str = "Actual vs predicted next-day close",
+    last_n: Optional[int] = None,
+    show_naive: bool = False,
+) -> plt.Figure:
+    """Actual next-day close vs model prediction."""
+    df = pred_df.tail(last_n) if last_n else pred_df
+    fig, ax = plt.subplots(figsize=(11, 4.5))
+    ax.plot(df.index, df["actual"], color=ROLE_COLORS["actual"], label="Actual close")
+    ax.plot(df.index, df["predicted"], color=ROLE_COLORS["predicted"], label="Model prediction")
+    if show_naive:
+        ax.plot(df.index, df["naive"], color=ROLE_COLORS["baseline"], label="Naive baseline (today's close)")
+    ax.set_title(title)
+    _dollar_axis(ax)
+    ax.legend(loc="upper left")
+    fig.tight_layout()
+    return fig
+
+
+def plot_residuals(pred_df: pd.DataFrame, title: str = "Prediction errors (predicted - actual)") -> plt.Figure:
+    """Histogram of dollar errors."""
+    errors = pred_df["predicted"] - pred_df["actual"]
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.hist(errors, bins=60, color=SERIES[0], edgecolor=COLORS["surface"], linewidth=0.6)
+    ax.axvline(0, color=COLORS["ink_secondary"], linewidth=0.8)
+    ax.set_title(title)
+    ax.set_xlabel("error (USD)")
+    ax.set_ylabel("number of days")
+    fig.tight_layout()
+    return fig
+
+
+def plot_metric_comparison(
+    table: pd.DataFrame, metric: str = "RMSE", title: Optional[str] = None, higher_is_better: bool = False
+) -> plt.Figure:
+    """
+    Horizontal bars of one metric for every run. Neural networks in blue, baselines in gray.
+    `table` is the output of src.evaluate.compare_runs(). The best run is on top.
+    """
+    t = table.dropna(subset=[metric]).sort_values(metric, ascending=not higher_is_better)
+    if title is None:
+        title = f"Test-set {metric} ({'higher' if higher_is_better else 'lower'} is better)"
+    colors = [COLORS["muted"] if kind == "baseline" else SERIES[0] for kind in t["kind"]]
+    fig, ax = plt.subplots(figsize=(9, 0.42 * len(t) + 1.4))
+    bars = ax.barh(t.index, t[metric], color=colors, height=0.6, edgecolor=COLORS["surface"], linewidth=1.5)
+    ax.invert_yaxis()  # best run at the top
+    for bar, value in zip(bars, t[metric]):
+        ax.annotate(
+            f"{value:,.3f}", (bar.get_width(), bar.get_y() + bar.get_height() / 2),
+            xytext=(4, 0), textcoords="offset points", va="center", fontsize=9, color=COLORS["ink_secondary"],
+        )
+    ax.grid(axis="y", visible=False)
+    ax.set_title(title)
+    ax.legend(
+        handles=[Patch(color=SERIES[0], label="Neural network"), Patch(color=COLORS["muted"], label="Baseline")],
+        loc="upper left",
+        bbox_to_anchor=(1.0, 1.0),
+    )
+    ax.margins(x=0.15)
+    fig.tight_layout()
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# Deployment plot
+# ---------------------------------------------------------------------------
+def plot_recent_with_prediction(df: pd.DataFrame, prediction: dict, days: int = 120) -> plt.Figure:
+    """
+    Recent closing prices plus the predicted next close.
+
+    `prediction` is the dict returned by src.predict.predict_next_day().
+    """
+    recent = df["Close"].tail(days)
+    next_date = pd.Timestamp(prediction["next_date"])
+    predicted = prediction["predicted_close"]
+
+    fig, ax = plt.subplots(figsize=(11, 4.2))
+    ax.plot(recent.index, recent, color=ROLE_COLORS["actual"], label="Actual close")
+    ax.plot(
+        [recent.index[-1], next_date], [recent.iloc[-1], predicted],
+        color=ROLE_COLORS["predicted"], label="Predicted next close",
+    )
+    ax.scatter(
+        [next_date], [predicted], s=40, color=ROLE_COLORS["predicted"],
+        edgecolor=COLORS["surface"], linewidth=1.5, zorder=3,
+    )
+    ax.annotate(
+        f"${predicted:,.2f}", (next_date, predicted), xytext=(8, 0), textcoords="offset points",
+        va="center", fontsize=9, color=COLORS["ink_secondary"],
+    )
+    ax.set_title(f"Last {days} trading days and the prediction for {prediction['next_date']}")
+    _dollar_axis(ax)
+    ax.margins(x=0.06)
     ax.legend(loc="upper left")
     fig.tight_layout()
     return fig

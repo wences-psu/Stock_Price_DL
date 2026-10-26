@@ -1,8 +1,8 @@
-# Notebook Hygiene
+# Notebook Maintenance
 
 Notebooks store more than code: outputs, execution counts, and the kernel and Python version of whoever saved last. Committing these creates huge diffs and merge conflicts, so we strip them automatically.
 
-## One-time setup (each person, each computer)
+## One time setup (each person, each computer)
 
 ```bash
 python -m pip install -r requirements.txt
