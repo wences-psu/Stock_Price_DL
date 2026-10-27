@@ -10,7 +10,7 @@ The project follows the **CRISP-DM** framework from start to finish: business un
 
 ```
 Stock_Price/
-├── README.md                       ← you are here
+├── README.md                       ← Project overview
 ├── requirements.txt                ← pinned library versions
 ├── config.py                       ← ALL settings (dates, lookback, volume on/off, epochs...)
 ├── data/
@@ -22,8 +22,6 @@ Stock_Price/
 │   ├── 03_modeling.ipynb
 │   ├── 04_evaluation.ipynb
 │   └── 05_deployment_demo.ipynb
-├── app/
-│   └── streamlit_app.py            ← web app for predictions
 ├── docs/                           ← concept guides
 │   ├── 01_crisp_dm_workflow.md
 │   ├── 02_time_series_concepts.md
