@@ -88,14 +88,9 @@ def load_stock_data(
     """
     df = pd.read_csv(
     source,
-    header=[0, 1],      # first two rows are headers
-    df = pd.read_csv(
-    source,
     header=[0, 1],
     index_col=0,
     parse_dates=True
-)
-    parse_dates=True    # convert Date to datetime
 )
 
     if ticker is not None:
