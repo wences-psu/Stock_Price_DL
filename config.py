@@ -51,7 +51,7 @@ USE_VOLUME = False
 #                 (Recommended - see docs/02_time_series_concepts.md.)
 #   "price":      tomorrow's closing price directly (scaled). Kept so you can
 #                 compare and see why this is usually a worse idea.
-TARGET_MODE = "log_return"
+TARGET_MODE = "price"
 
 # Window size for the moving average baseline.
 MA_WINDOW = 5
