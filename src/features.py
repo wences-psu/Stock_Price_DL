@@ -1,19 +1,15 @@
-"""
-features.py - CRISP-DM phase 3: Data Preparation (feature engineering).
+""""
+features.py - CRISP-DM phase 3: Data Preparation.
 
 Responsibilities
 ----------------
-1. Create model inputs (features) from raw prices and volume.
-2. Create the target: the value we want to predict for the NEXT trading day.
+1. Prepare historical closing prices and trading volume.
+2. Create the next-day closing-price prediction target.
+3. Support six deep-learning configurations:
+   LSTM, GRU, and 1D-CNN, each with two feature sets.
 
-The model predicts tomorrow's log return:
-
-    Log returns, r_t = ln(Close_t / Close_{t-1}) 
-
- Then turn it back into a price:
-
-    predicted_close_{t+1} = Close_t * exp(predicted_return_{t+1})
-
+The models use the previous 60 trading days to predict
+the next trading day's closing price.
 """
 
 import numpy as np
@@ -21,10 +17,10 @@ import pandas as pd
 import config
 
 # Price only features.
-PRICE_FEATURES = ["log_return"]
+PRICE_FEATURES = ["Close"]
 
 # Extra inputs added when volume is included.
-VOLUME_FEATURES = ["log_volume", "volume_change"]
+VOLUME_FEATURES = ["Volume"]
 
 # All engineered features.
 ENGINEERED_FEATURES = ["log_return", "log_volume", "volume_change"]
@@ -58,8 +54,8 @@ def get_feature_columns(use_volume: bool) -> list:
     """
     Return the list of input columns.
 
-    use_volume=False -> ["log_return"]                                  (price only)
-    use_volume=True  -> ["log_return", "log_volume", "volume_change"]   (price + volume)
+    use_volume=False -> ["Close"]                                  (price only)
+    use_volume=True  -> ["Close", "Volume"]   (price + volume)
     """
     columns = PRICE_FEATURES.copy()
     if use_volume:
@@ -77,7 +73,7 @@ def add_target(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
 
     Columns added
     -------------
-    target      : what the network learns (next log return).
+    target      : what the network learns (next-day closing price).
     next_close  : tomorrow's actual close (used to evaluate in dollars).
     target_date : tomorrow's date (used for plots).
     """
@@ -85,11 +81,11 @@ def add_target(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
     if isinstance(df.columns, pd.MultiIndex):
         out["next_close", ticker] = out["Close", ticker].shift(-1)
         out["target_date"] = out.index.to_series().shift(-1)
-        out["target", ticker] = out["log_return", ticker].shift(-1)
+        out["target", ticker] = out["Close", ticker].shift(-1)
     else:
         out["next_close"] = out["Close"].shift(-1)
         out["target_date"] = out.index.to_series().shift(-1)
-        out["target"] = out["log_return"].shift(-1)
+        out["target"] = out["Close"].shift(-1)
     return out
 
 
