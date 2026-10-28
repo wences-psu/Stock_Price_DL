@@ -223,6 +223,9 @@ def load_prepared_data(
     """
     df = load_stock_data(data_path, start_date=start_date, verbose=verbose)
     frame = build_modeling_frame(df)
+    if target_mode == "log_return":
+        frame["target"] = np.log(frame["next_close"] / frame["Close"])
+        frame = frame.dropna(subset=["target"])
     feature_columns = get_feature_columns(use_volume)
     return prepare_data(
         frame,
