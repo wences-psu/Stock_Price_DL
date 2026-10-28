@@ -222,7 +222,7 @@ def load_prepared_data(
     Convenience pipeline: load CSV -> engineer features/target -> split, scale, window.
     """
     df = load_stock_data(data_path, start_date=start_date, verbose=verbose)
-    frame = build_modeling_frame(df, target_mode)
+    frame = build_modeling_frame(df)
     feature_columns = get_feature_columns(use_volume)
     return prepare_data(
         frame,
