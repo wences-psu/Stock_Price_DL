@@ -128,9 +128,12 @@ def predict_next_day(
         predicted_return = pred
         predicted_close = last_close * float(np.exp(pred))
     else:
-        predicted_close = pred
-        predicted_return = float(np.log(pred / last_close))
-
+    predicted_close = pred
+    predicted_return = (
+        float(np.log(pred / last_close))
+        if pred > 0 and last_close > 0
+        else float("nan")
+    )
     last_date = frame.index[-1]
     # Next business day. Note: this ignores market holidays; use an exchange
     # calendar (e.g. pandas_market_calendars) for an exact date.
