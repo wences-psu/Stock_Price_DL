@@ -23,8 +23,8 @@ import pandas as pd
 import config
 
 # Columns every downstream step expects to find.
-REQUIRED_COLUMNS = ['Close', 'High', 'Low', 'Open', 'Volume']
-PRICE_COLUMNS = ['Close', 'High', 'Low', 'Open']
+REQUIRED_COLUMNS = ['Close', 'Volume']
+PRICE_COLUMNS = ['Close']
 
 
 def validate_stock_data(df: pd.DataFrame) -> List[str]:
@@ -56,9 +56,6 @@ def validate_stock_data(df: pd.DataFrame) -> List[str]:
 
     # Report warnings.
     warnings = []
-    bad_high_low = df.index[df["High"] < df["Low"]]
-    if len(bad_high_low):
-        warnings.append(f"{len(bad_high_low)} rows have High < Low.")
     zero_volume = df.index[df["Volume"] == 0]
     if len(zero_volume):
         dates = ", ".join(str(d.date()) for d in zero_volume[:5])
@@ -86,7 +83,7 @@ def load_stock_data(
 
     Returns
     -------
-    DataFrame indexed by Date with columns: Close, High, Low, Open, Volume.
+    DataFrame indexed by Date with columns: Close, Volume.
     sorted oldest -> newest.
     """
     df = pd.read_csv(
