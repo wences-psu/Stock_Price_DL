@@ -7,7 +7,7 @@ This style makes the data flow explicit and scales to complex architectures
 (multiple inputs, skip connections) later.
 
 Input shape for every model: (LOOKBACK, n_features)
-    e.g. (60, 1) with price only, (60, 3) with price + volume.
+    e.g. (60, 1) with price only, (60, 3) with Close + Volume.
 Output: 1 number - the (scaled) target for the next day.
 
 See docs/03_deep_learning_models.md for how LSTM, GRU and 1D-CNN work.
