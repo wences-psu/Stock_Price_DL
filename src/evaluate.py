@@ -3,7 +3,7 @@ evaluate.py - CRISP-DM phase 5: Evaluation.
 
 Responsibilities
 ----------------
-1. Turn model outputs (scaled log returns) back into dollar prices.
+1. Convert scaled model predictions back into closing prices in dollars.
 2. Build simple, non-ML BASELINES. A model is only useful if it beats them.
 3. Compute metrics (MAE, RMSE, MAPE, directional accuracy).
 4. Compare every trained run in one table (saved to artifacts/metrics.csv).
@@ -166,6 +166,9 @@ def compare_runs(
 
     rows = []
     baseline_table = None
+    reference_dates = None
+    reference_actual = None
+
     for run_dir in run_dirs:
         arts = load_artifacts(run_dir)
         meta = arts["metadata"]
@@ -179,8 +182,26 @@ def compare_runs(
             verbose=False,
         )
         pred_df = predict_split(arts["model"], data, split)
-        pred_df.to_csv(run_dir / f"predictions_{split}.csv")
 
+        if reference_dates is None:
+            reference_dates = pred_df.index.copy()
+            reference_actual = pred_df["actual"].to_numpy().copy()
+        else:
+            if not pred_df.index.equals(reference_dates):
+                raise ValueError(
+                    f"Test dates do not match for run: {run_dir.name}"
+                )
+            if not np.allclose(
+                pred_df["actual"].to_numpy(),
+                reference_actual,
+                rtol=0,
+                atol=1e-8,
+            ):
+                raise ValueError(
+                    f"Actual closing prices do not match for run: {run_dir.name}"
+                )
+
+        pred_df.to_csv(run_dir / f"predictions_{split}.csv")
         m = regression_metrics(pred_df["actual"], pred_df["predicted"], pred_df["close_t"])
         m.update(
             {
