@@ -120,10 +120,8 @@ def train_model(
     ]
 
     # Fit
-    # shuffle=True shuffles the order of windows inside the training set only.
-    # That is safe: each window is a self-contained (past -> next day) example,
-    # and validation/test data stay strictly later in time. Shuffling makes
-    # mini-batches less correlated, which usually helps gradient descent.
+    # Keep training windows in chronological order.
+    # Validation and test data remain separate and later in time.
     start = time.time()
     history = model.fit(
         train.X,
@@ -131,7 +129,7 @@ def train_model(
         validation_data=(val.X, val.y),
         epochs=epochs,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=False,
         callbacks=callbacks,
         verbose=verbose,
     )
