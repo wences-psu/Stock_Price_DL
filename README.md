@@ -37,6 +37,8 @@ Stock_Price/
 
 The project was built and tested with Python 3.9, TensorFlow 2.10.1 (the last TensorFlow release with native GPU support on Windows).
 
+The evaluation and deployment notebooks were also successfully tested on macOS using Python 3.12.16 in the stock_eval312 Conda environment.  This environment used a newer TensorFlow version and successfully loaded the saved models.
+
 ### First time clone
 
 If you do not have the project on your computer yet, open PowerShell or Git Bash on Windows, Terminal on macOS, or a terminal on Linux and run:
@@ -54,6 +56,40 @@ conda create -n stock-dl python=3.9 -y
 conda activate stock-dl
 python -m pip install -r requirements.txt
 ```
+
+### macOS Evaluation and Deployment Environment
+
+The evaluation and deployment notebooks were successfully tested on
+macOS using Python 3.12.16 in a Conda environment named
+`stock_eval312`.
+
+To create and activate this environment:
+
+```bash
+conda create -n stock_eval312 python=3.12 -y
+conda activate stock_eval312
+```
+
+### Verified macOS Package Versions
+
+The following versions were used successfully to execute the
+evaluation and deployment notebooks:
+
+| Package | Version |
+|---|---|
+| Python | 3.12.16 |
+| TensorFlow | 2.16.2 |
+| NumPy | 1.26.4 |
+| Pandas | 2.2.3 |
+| Scikit-learn | 1.6.1 |
+
+These versions were verified in the `stock_eval312` Conda environment.
+
+The evaluation and deployment notebooks ran successfully without
+retraining or modifying the six saved neural network models.
+
+The original `requirements.txt` remains unchanged to preserve
+compatibility with the team's Python 3.9 environment.
 
 ---
 
@@ -91,4 +127,33 @@ Open the notebooks in order:
 
 Each teammate should work on a short lived branch and merge into `main` through a pull request after the other teammate reviews the changes. Do not commit directly to `main`.
 
----
+## Evaluation Results
+
+Six deep learning models were evaluated for Apple's AAPL next-day
+closing price. CNN, GRU, and LSTM were tested with closing prices
+alone and with trading volume.
+
+### Model Performance (test RMSE, USD)
+CNN price only: 4.1837
+CNN price + volume: 4.1737
+GRU price only: 4.6419
+GRU price + volume: 4.2178
+LSTM price only: 4.3053
+LSTM price + volume: 4.3693
+Naive baseline: 4.1577
+Random walk + drift baseline: 4.1520
+
+### Key Findings
+CNN with volume had the lowest test RMSE among neural networks. Volume
+improved CNN and GRU but worsened LSTM. None of the six models
+outperformed the naive baseline. LSTM with volume was selected using
+validation loss, not test results. It did not meet the four business
+success criteria.
+
+### Deployment Decision
+The workflow successfully generated a next-day prediction and
+completed a 20-trading-day simulation with MAE of $4.37. Because none
+of the neural networks beat the simple forecasting baseline,
+production deployment is not recommended. Future research could
+explore market context, volatility indicators, news sentiment, and
+feature engineering.---
