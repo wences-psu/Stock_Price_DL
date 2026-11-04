@@ -121,7 +121,7 @@ def fit_scalers(
     Two separate scalers are used because the target must be converted back
     to its original units later (inverse_transform), independent of the inputs.
     """
-    train_rows = frame.iloc[:train_end]
+    train_rows = frame.iloc[:train_end - 1]
     feature_scaler = StandardScaler().fit(train_rows[feature_columns].to_numpy())
     target_scaler = StandardScaler().fit(train_rows[["target"]].to_numpy())
     return feature_scaler, target_scaler
