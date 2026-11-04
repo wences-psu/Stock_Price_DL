@@ -21,7 +21,7 @@ Preprocessing for time series:
    (samples, timesteps, features). For each day t we build a window of the
    last LOOKBACK days of features and pair it with the target for day t+1:
 
-       X[i] = features[t-LOOKBACK+1 ... t]     y[i] = target[t]  (= value of day t+1)
+      X[i] = features[t-LOOKBACK+1 ... t]     y[i] = target[t]  (= closing price of day t+1)
 """
 
 from dataclasses import dataclass, field
@@ -47,7 +47,7 @@ class SplitWindows:
     row_idx: np.ndarray              # position of day t in the modeling frame
     dates: pd.DatetimeIndex          # day t ("today", last day inside the window)
     target_dates: pd.DatetimeIndex   # day t+1 (the day being predicted)
-    close_t: np.ndarray              # close of day t (needed to rebuild prices from returns)
+    close_t: np.ndarray              # closing price of day t (used for evaluation)
     next_close: np.ndarray           # actual close of day t+1 (ground truth in dollars)
 
     @property
@@ -134,9 +134,9 @@ def make_windows(
     Build sliding windows for the days t in [start, end).
 
     A window for day t may reach back before `start` (into the previous split).
-    That is fine: those are *past inputs* that would be known on day t in real
-    life. What must never cross into the future is the target, and each target
-    here belongs to day t+1 of the same split.
+    That is fine because these are past inputs known on day t.
+    The target is the closing price of day t+1.
+    At split boundaries, the final target may fall in the following split.
 
     Returns
     -------
@@ -183,6 +183,9 @@ def prepare_data(
     splits = {}
     for name, (start, end) in boundaries.items():
         X, t_idx = make_windows(features_scaled, lookback, start, end)
+        if name != "test":
+            X = X[:-1]
+            t_idx = t_idx[:-1]
         if len(t_idx) == 0:
             raise ValueError(f"The '{name}' split has no samples; reduce LOOKBACK or use more data.")
         splits[name] = SplitWindows(
