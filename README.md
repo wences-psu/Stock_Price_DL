@@ -129,31 +129,48 @@ Each teammate should work on a short lived branch and merge into `main` through 
 
 ## Evaluation Results
 
-Six deep learning models were evaluated for Apple's AAPL next-day
-closing price. CNN, GRU, and LSTM were tested with closing prices
-alone and with trading volume.
+Six deep learning models were evaluated to predict Apple's (AAPL) next-day closing price. CNN, GRU, and LSTM were tested using closing prices alone and closing prices with trading volume.
 
 ### Model Performance (test RMSE, USD)
-CNN price only: 4.1837
-CNN price + volume: 4.1737
-GRU price only: 4.6419
-GRU price + volume: 4.2178
-LSTM price only: 4.3053
-LSTM price + volume: 4.3693
-Naive baseline: 4.1577
+CNN price only: 14.7613  
+CNN price + volume: 16.3988  
+GRU price only: 40.4717  
+GRU price + volume: 32.5438  
+LSTM price only: 49.3220  
+LSTM price + volume: 65.3250 
+Naive baseline: 4.1577  
 Random walk + drift baseline: 4.1520
 
+
 ### Key Findings
-CNN with volume had the lowest test RMSE among neural networks. Volume
-improved CNN and GRU but worsened LSTM. None of the six models
-outperformed the naive baseline. LSTM with volume was selected using
-validation loss, not test results. It did not meet the four business
-success criteria.
+CNN using closing prices alone had the lowest test RMSE among the six deep learning models.
+
+Adding trading volume improved GRU performance but worsened CNN and LSTM performance.
+
+None of the six deep learning models outperformed the naive baseline or the random walk with drift baseline.
+
+GRU with closing prices and trading volume was selected based on validation loss, not test performance.
+
+The selected GRU model did not meet the project's overall business success criteria.
+
+### Deployment Results
+
+The deployment notebook successfully generated a prediction for September 30, 2026, using historical data through September 29, 2026.
+
+Last observed closing price: $329.40  
+Predicted next-day closing price: $253.65  
+Predicted percentage change: -22.99%
+
+A rolling 20-trading-day historical simulation produced a mean absolute error (MAE) of $78.24.
+
+The selected GRU model consistently underestimated actual closing prices during this simulation.
 
 ### Deployment Decision
-The workflow successfully generated a next-day prediction and
-completed a 20-trading-day simulation with MAE of $4.37. Because none
-of the neural networks beat the simple forecasting baseline,
-production deployment is not recommended. Future research could
-explore market context, volatility indicators, news sentiment, and
-feature engineering.---
+
+The project successfully completed the CRISP-DM workflow, including data preparation, model training, evaluation, and a deployment demonstration.
+
+However, none of the six deep learning models outperformed the simple forecasting baselines.
+
+Therefore, production deployment is not recommended at this time.
+
+Future improvements should focus on investigating prediction bias, improving model performance, testing additional market indicators, and exploring better feature engineering.
