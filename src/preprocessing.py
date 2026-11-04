@@ -136,7 +136,9 @@ def make_windows(
     A window for day t may reach back before `start` (into the previous split).
     That is fine because these are past inputs known on day t.
     The target is the closing price of day t+1.
-    At split boundaries, the final target may fall in the following split.
+    The prepare_data function excludes training and validation samples
+    whose targets would fall in the following split.
+
 
     Returns
     -------
