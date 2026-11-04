@@ -49,8 +49,8 @@ USE_VOLUME = False
 #   "log_return": tomorrow's log return, ln(Close_{t+1} / Close_t). The price is
 #                 reconstructed afterwards as Close_t * exp(predicted_return).
 #                 (Recommended - see docs/02_time_series_concepts.md.)
-#   "price":      tomorrow's closing price directly (scaled). Kept so you can
-#                 compare and see why this is usually a worse idea.
+#   "price":      tomorrow's closing price directly (scaled).
+#                 This is the target used in the Team 7 project.
 TARGET_MODE = "price"
 
 # Window size for the moving average baseline.
