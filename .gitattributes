@@ -1,5 +1,5 @@
 * text eol=lf
 
-# Notebooks: strip outputs and kernel/Python metadata on commit (needs nbstripout, see docs/notebook-hygiene.md)
+# Notebooks: strip outputs and kernel/Python metadata on commit (needs nbstripout, see docs/notebook-maintenance.md)
 *.ipynb filter=nbstripout
 *.ipynb diff=ipynb

@@ -1,5 +1,8 @@
 /artifacts/*
 /data/*
+# Exceptions: the folder placeholder and the small AAPL dataset the notebooks need
+!/data/.gitkeep
+!/data/AAPL_only.csv
 **/__pycache__/
 *.pyc
 **/.vscode/

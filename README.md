@@ -14,14 +14,14 @@ Stock_Price/
 ├── requirements.txt                ← pinned library versions
 ├── config.py                       ← ALL settings (dates, lookback, volume on/off, epochs...)
 ├── data/
-│   ├── SnP_daily_update.csv        ← daily OHLCV S&P 500 data
+│   ├── AAPL_only.csv               ← daily AAPL closing price and volume data
 ├── src/                            ← reusable helper code
 ├── notebooks/                      ← run these in order
 │   ├── 01_business_and_data_understanding.ipynb
 │   ├── 02_data_preparation.ipynb
 │   ├── 03_modeling.ipynb
 │   ├── 04_evaluation.ipynb
-│   └── 05_deployment_demo.ipynb
+│   └── 05_deployment.ipynb
 ├── docs/                           ← concept guides
 │   ├── 01_crisp_dm_workflow.md
 │   ├── 02_time_series_concepts.md
