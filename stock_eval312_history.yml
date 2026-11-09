@@ -1,0 +1,8 @@
+name: stock_eval312
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - ipykernel
+prefix: /opt/anaconda3/envs/stock_eval312

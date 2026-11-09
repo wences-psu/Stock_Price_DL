@@ -174,3 +174,54 @@ However, none of the six deep learning models outperformed the simple forecastin
 Therefore, production deployment is not recommended at this time.
 
 Future improvements should focus on investigating prediction bias, improving model performance, testing additional market indicators, and exploring better feature engineering.
+
+## Dataset Source and Reproducibility 
+### Original Dataset
+
+The original dataset was obtained from Kaggle:
+S&P500 All Assets – Daily Updated Dataset.
+
+Source file: SnP_daily_update.csv
+
+The project uses Apple's (AAPL) historical closing prices
+and daily trading volumes from January 4, 2010, through
+September 29, 2026.
+
+The AAPL data was extracted from the original dataset
+using the Close and Volume columns associated with
+the AAPL ticker symbol.
+
+The extracted dataset contains 4,210 trading-day records
+and is stored in data/AAPL_only.csv.
+
+### Dataset Extraction Procedure
+
+The AAPL dataset can be reproduced using the Python script
+located at src/extract_aapl.py.
+
+The script performs the following steps:
+
+1. Reads SnP_daily_update.csv using its two-row header.
+2. Selects the Close and Volume columns for ticker AAPL.
+3. Preserves the original trading dates and numerical values.
+4. Creates data/AAPL_only_verified.csv.
+5. Leaves the existing data/AAPL_only.csv unchanged.
+
+Run the extraction script from the project root:
+
+    python src/extract_aapl.py
+
+### Dataset Verification
+
+The extracted data was compared with the existing
+project dataset using pandas.
+
+Verification results:
+
+- Original dataset: 4,210 AAPL records.
+- Recreated dataset: 4,210 AAPL records.
+- Data values match: True.
+
+The comparison confirmed that the recreated dataset
+matches the existing project dataset when loaded
+using pandas.
