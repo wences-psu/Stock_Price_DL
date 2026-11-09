@@ -1,0 +1,4 @@
+# Linux or WSL with an NVIDIA GPU: adds the CUDA libraries TensorFlow needs.
+# Install with: python -m pip install -r requirements-linux-gpu.txt
+-r requirements.txt
+tensorflow[and-cuda]==2.16.2

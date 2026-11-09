@@ -18,7 +18,7 @@ These instructions apply to agents working in this repository. They are shared b
 - Do not edit `main` directly and do not commit directly to `main`.
 - Use pull requests for merging into `main`; one teammate reviews before merge.
 - Avoid simultaneous edits to the same notebook. Keep notebook execution order aligned with the README.
-- Do not commit downloaded data, model outputs, generated artifacts, virtual environments, secrets, or API keys. Check `.gitignore` before adding unfamiliar files.
+- Do not commit downloaded data, model outputs, generated artifacts, virtual environments, secrets, or API keys. Check `.gitignore` before adding unfamiliar files. The final notebook is the one exception that keeps its cell outputs; see `docs/notebook-maintenance.md`.
 - Keep changes compatible with Windows, macOS, and Linux where practical.
 
 ## Safe Git Operations
