@@ -1,6 +1,6 @@
 # 04 · Evaluating price forecasts
 
-This document explains `src/evaluate.py` and `notebooks/04_evaluation.ipynb`.
+This document explains the Model Evaluation section of the final notebook.
 
 ---
 
@@ -12,7 +12,7 @@ The network is trained on **scaled closing prices**, but business decisions are 
 model output (scaled) ──inverse_transform──▶ price in $
 ```
 
-If `TARGET_MODE` is set to `"log_return"` in `config.py`, the converted value is a log return, and the price is rebuilt as $C_t \cdot \exp(r)$.
+In the log-return improvement experiment, the converted value is a log return, and the price is rebuilt as $C_t \cdot \exp(r)$.
 
 All metrics are computed on the **test set**, a period the model never saw and that played no part in choosing settings.
 
@@ -63,7 +63,7 @@ With about 630 test days, small differences between models can easily come from 
 | positive | < 0.05 | Model A is significantly worse than B |
 | any | ≥ 0.05 | No evidence of a difference: treat them as equivalent |
 
-The notebook uses the simple 1-step version. For multi-step forecasts, the variance must be corrected for autocorrelation (Newey-West) [3], and the Harvey-Leybourne-Newbold (1997) [2] correction improves small sample behavior.
+The final notebook does not run this test, but it is a useful next step when two models have close results. For next-day forecasts, the simple 1-step version applies. For multi-step forecasts, the variance must be corrected for autocorrelation (Newey-West) [3], and the Harvey-Leybourne-Newbold (1997) [2] correction improves small sample behavior.
 
 ---
 

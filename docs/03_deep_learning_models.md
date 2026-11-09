@@ -1,6 +1,6 @@
 # 03 · Deep learning models explained
 
-This document explains the building blocks used in `src/models.py` and `src/train.py`.
+This document explains the building blocks used by `build_model` and `train_run` in the final notebook.
 
 ---
 
@@ -199,4 +199,4 @@ With noisy financial targets, if the best validation epoch occurs early it means
 
 ## 11. Reproducibility
 
-`set_seeds()` fixes the Python, NumPy and TensorFlow random seeds, so weight initialization, dropout masks and shuffling are repeatable. Results can still differ slightly between CPU and GPU or between library versions. With a weak signal, those small differences can change the ranking of models, which is why notebook 04 uses a statistical test and we recommend averaging several seeds.
+`keras.utils.set_random_seed()` fixes the Python, NumPy and TensorFlow random seeds, so weight initialization and dropout masks are repeatable. Results can still differ slightly between CPU and GPU or between library versions. With a weak signal, those small differences can change the ranking of models, which is why we recommend averaging several seeds.

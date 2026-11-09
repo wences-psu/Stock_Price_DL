@@ -1,109 +1,63 @@
 # Next day stock price prediction with deep learning (Keras / TensorFlow)
 
-A project that predicts the **next trading day's closing price** of Apple (AAPL) with LSTM, GRU and 1D-CNN networks. It includes a switch to add **trading volume** as an input, to measure whether volume improves the prediction.
+A project that predicts the **next trading day's closing price** of Apple (AAPL) with 1D-CNN, LSTM and GRU networks, each tested with closing price alone and with closing price plus **trading volume**. The models are compared with simple baselines, and the best raw-price model is then improved with hyperparameter tuning and a log-return target.
 
-The project follows the **CRISP-DM** framework from start to finish: business understanding → data understanding → data preparation → modeling → evaluation → deployment. Every step is explained in commented code, notebooks and Markdown guides.
+All the code and the report text are in one notebook, [`notebooks/Team7_Deep_Learning_Final_Project.ipynb`](notebooks/Team7_Deep_Learning_Final_Project.ipynb). It needs no other project code.
 
 ---
 
 ## Project structure
 
 ```
-Stock_Price/
-├── README.md                       ← Project overview
-├── requirements.txt                ← pinned library versions
-├── config.py                       ← ALL settings (dates, lookback, volume on/off, epochs...)
+Stock_Price_DL/
+├── README.md                       <- Project overview
+├── requirements.txt                <- shared library versions
+├── requirements-linux-gpu.txt      <- the same, plus CUDA libraries for Linux or WSL GPUs
 ├── data/
-│   ├── AAPL_only.csv               ← daily AAPL closing price and volume data
-├── src/                            ← reusable helper code
-├── notebooks/                      ← run these in order
-│   ├── 01_business_and_data_understanding.ipynb
-│   ├── 02_data_preparation.ipynb
-│   ├── 03_modeling.ipynb
-│   ├── 04_evaluation.ipynb
-│   └── 05_deployment.ipynb
-├── docs/                           ← concept guides
-│   ├── 01_crisp_dm_workflow.md
-│   ├── 02_time_series_concepts.md
-│   ├── 03_deep_learning_models.md
-│   ├── 04_evaluation_metrics.md
-│   └── 05_deployment.md
-└── artifacts/                      ← created by training: models, scalers, metrics, plots
+│   └── AAPL_only.csv               <- daily AAPL closing price and volume data
+├── notebooks/
+│   └── Team7_Deep_Learning_Final_Project.ipynb   <- all code, results and report text
+├── docs/                           <- concept and team guides
+└── artifacts/                      <- created by the notebook: models, scalers, logs (not in Git)
 ```
 
 ---
 
 ## Setup
 
-The project was built and tested with Python 3.9, TensorFlow 2.10.1 (the last TensorFlow release with native GPU support on Windows).
-
-The evaluation and deployment notebooks were also successfully tested on macOS using Python 3.12.16 in the stock_eval312 Conda environment.  This environment used a newer TensorFlow version and successfully loaded the saved models.
-
-### First time clone
-
-If you do not have the project on your computer yet, open PowerShell or Git Bash on Windows, Terminal on macOS, or a terminal on Linux and run:
+If you do not have the project on your computer yet, open a terminal and run:
 
 ```bash
 git clone https://github.com/wences-psu/Stock_Price_DL.git
 cd Stock_Price_DL
 ```
 
-You only need to clone the project once on each computer. After cloning, use the team workflow in [`docs/git-workflow.md`](docs/git-workflow.md) to create a branch, update your local copy, and share changes through a pull request. The commands are the same across Windows, macOS, and Linux.
+You only need to clone the project once on each computer. After cloning, use the team workflow in [`docs/git-workflow.md`](docs/git-workflow.md) to create a branch, update your local copy, and share changes through a pull request.
 
-To create a fresh environment:
+Create the shared environment, which uses Python 3.12.16 and the same library versions for both teammates:
+
 ```bash
-conda create -n stock-dl python=3.9 -y
-conda activate stock-dl
+conda create -n stock_eval312 python=3.12.16 -y
+conda activate stock_eval312
 python -m pip install -r requirements.txt
 ```
 
-### macOS Evaluation and Deployment Environment
-
-The evaluation and deployment notebooks were successfully tested on
-macOS using Python 3.12.16 in a Conda environment named
-`stock_eval312`.
-
-To create and activate this environment:
-
-```bash
-conda create -n stock_eval312 python=3.12 -y
-conda activate stock_eval312
-```
-
-### Verified macOS Package Versions
-
-The following versions were used successfully to execute the
-evaluation and deployment notebooks:
-
-| Package | Version |
-|---|---|
-| Python | 3.12.16 |
-| TensorFlow | 2.16.2 |
-| NumPy | 1.26.4 |
-| Pandas | 2.2.3 |
-| Scikit-learn | 1.6.1 |
-
-These versions were verified in the `stock_eval312` Conda environment.
-
-The evaluation and deployment notebooks ran successfully without
-retraining or modifying the six saved neural network models.
-
-The original `requirements.txt` remains unchanged to preserve
-compatibility with the team's Python 3.9 environment.
+**NVIDIA GPU:** use Linux or WSL and install `requirements-linux-gpu.txt` in the last step instead. TensorFlow 2.10 was the last version with native GPU support on Windows, so TensorFlow 2.16 only uses the CPU on native Windows.
 
 ---
 
 ## Quick start
 
-Open the notebooks in order:
+Open the notebook, choose the `stock_eval312` kernel, and select Run All.
 
-| Notebook |
-|---|
-| `01_business_and_data_understanding` |
-| `02_data_preparation` |
-| `03_modeling` |
-| `04_evaluation` |
-| `05_deployment` |
+| Setting (in the settings cell) | Effect |
+|---|---|
+| `RETRAIN = True` (default) | Trains everything from scratch |
+| `RETRAIN = False` | Reloads the saved models from an earlier complete run, in under a minute |
+
+A full run took about 21 minutes on an RTX 4090 Laptop GPU and about 25 minutes on the CPU of the same laptop. CPU and GPU runs select the same model and reach the same conclusions, with small differences in the numbers. To view the training logs, run `tensorboard --logdir artifacts/logs` from the project folder.
+
+The saved notebook keeps its outputs in Git, unlike other notebooks. See [`docs/notebook-maintenance.md`](docs/notebook-maintenance.md).
 
 ---
 
@@ -122,55 +76,40 @@ Open the notebooks in order:
 | Resource | Purpose |
 |---|---|
 | [`docs/git-workflow.md`](docs/git-workflow.md) | Git workflow, recovery commands, platform notes, and VS Code/PyCharm instructions. |
+| [`docs/notebook-maintenance.md`](docs/notebook-maintenance.md) | One time setup and rules for keeping notebooks clean in Git. |
 | [`AGENTS.md`](AGENTS.md) | Shared project rules for agents, coding style, notebooks, and safe Git operations. |
 | [`.github/skills/git-workflow/SKILL.md`](.github/skills/git-workflow/SKILL.md) | On demand instructions for asking an agent to safely inspect, sync, branch, commit, or push. |
 
 Each teammate should work on a short lived branch and merge into `main` through a pull request after the other teammate reviews the changes. Do not commit directly to `main`.
 
-## Evaluation Results
+## Results
 
-Six deep learning models were evaluated to predict Apple's (AAPL) next-day closing price. CNN, GRU, and LSTM were tested using closing prices alone and closing prices with trading volume.
+These numbers come from the official run saved in the notebook. All evaluations use the same 632 held-out test days, from March 22, 2024, through September 29, 2026.
 
-### Model Performance (test RMSE, USD)
-CNN price only: 14.7613  
-CNN price + volume: 16.3988  
-GRU price only: 40.4717  
-GRU price + volume: 32.5438  
-LSTM price only: 49.3220  
-LSTM price + volume: 65.3250 
-Naive baseline: 4.1577  
-Random walk + drift baseline: 4.1520
+| Model | Test RMSE (USD) |
+|---|---|
+| Random walk + drift baseline | 4.15 |
+| Naive baseline | 4.16 |
+| GRU price + volume, log-return target | 4.17 |
+| 5-day moving average baseline | 6.45 |
+| CNN price only | 14.94 |
+| CNN price + volume | 16.21 |
+| GRU price + volume, tuned | 16.65 |
+| GRU price + volume (selected by validation loss) | 32.52 |
+| GRU price only | 40.47 |
+| LSTM price only | 49.33 |
+| LSTM price + volume | 64.45 |
 
+### Key findings
 
-### Key Findings
-CNN using closing prices alone had the lowest test RMSE among the six deep learning models.
+- None of the models outperformed the naive or random walk with drift baselines.
+- CNN using closing prices alone had the lowest test RMSE among the six raw-price models.
+- GRU with closing prices and trading volume was selected based on validation loss, not test performance. It underestimated the actual close on 602 of the 632 test days.
+- Adding trading volume improved GRU performance but worsened CNN and LSTM performance.
+- Hyperparameter tuning cut the selected model's test RMSE roughly in half. The log-return target came within a few cents of the baselines, but did not beat them.
 
-Adding trading volume improved GRU performance but worsened CNN and LSTM performance.
+### Deployment decision
 
-None of the six deep learning models outperformed the naive baseline or the random walk with drift baseline.
+The historical demonstration predicted a close of $253.67 for September 30, 2026, using data through September 29, 2026, when the last close was $329.40. The selected model's 20-day historical replay had an MAE of $78.22, compared with $3.85 for the log-return version.
 
-GRU with closing prices and trading volume was selected based on validation loss, not test performance.
-
-The selected GRU model did not meet the project's overall business success criteria.
-
-### Deployment Results
-
-The deployment notebook successfully generated a prediction for September 30, 2026, using historical data through September 29, 2026.
-
-Last observed closing price: $329.40  
-Predicted next-day closing price: $253.65  
-Predicted percentage change: -22.99%
-
-A rolling 20-trading-day historical simulation produced a mean absolute error (MAE) of $78.24.
-
-The selected GRU model consistently underestimated actual closing prices during this simulation.
-
-### Deployment Decision
-
-The project successfully completed the CRISP-DM workflow, including data preparation, model training, evaluation, and a deployment demonstration.
-
-However, none of the six deep learning models outperformed the simple forecasting baselines.
-
-Therefore, production deployment is not recommended at this time.
-
-Future improvements should focus on investigating prediction bias, improving model performance, testing additional market indicators, and exploring better feature engineering.
+Production deployment is not recommended, because no model outperformed the simple forecasting baselines. This was a historical demonstration, not a current stock-price forecast.
