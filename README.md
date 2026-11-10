@@ -60,7 +60,7 @@ Open the notebook, choose the `stock_eval312` kernel, and select Run All.
 | `RETRAIN = True` (default) | Trains everything from scratch |
 | `RETRAIN = False` | Reloads the saved models from an earlier complete run, in under a minute |
 
-A full run took about 21 minutes on an RTX 4090 Laptop GPU and about 25 minutes on the CPU of the same laptop. CPU and GPU runs select the same model and reach the same conclusions, with small differences in the numbers. To view the training logs, run `tensorboard --logdir artifacts/logs` from the project folder.
+A full run took about 25 minutes on a laptop CPU and about 21 minutes on an RTX 4090 Laptop GPU. CPU and GPU runs select the same model and reach the same conclusions, with small differences in the numbers. To view the training logs, run `tensorboard --logdir artifacts/logs` from the project folder.
 
 The saved notebook keeps its outputs in Git, unlike other notebooks. See [`docs/notebook-maintenance.md`](docs/notebook-maintenance.md).
 
@@ -89,7 +89,7 @@ Each teammate should work on a short lived branch and merge into `main` through 
 
 ## Results
 
-These numbers come from the official run saved in the notebook. All evaluations use the same 632 held-out test days, from March 22, 2024, through September 29, 2026.
+These numbers come from the official CPU run saved in the notebook. All evaluations use the same 632 held-out test days, from March 22, 2024, through September 29, 2026.
 
 | Model | Test RMSE (USD) |
 |---|---|
@@ -97,13 +97,13 @@ These numbers come from the official run saved in the notebook. All evaluations 
 | Naive baseline | 4.16 |
 | GRU price + volume, log-return target | 4.17 |
 | 5-day moving average baseline | 6.45 |
-| CNN price only | 14.94 |
-| CNN price + volume | 16.21 |
+| CNN price only | 14.76 |
+| CNN price + volume | 16.40 |
 | GRU price + volume, tuned | 16.65 |
-| GRU price + volume (selected by validation loss) | 32.52 |
+| GRU price + volume (selected by validation loss) | 32.54 |
 | GRU price only | 40.47 |
-| LSTM price only | 49.33 |
-| LSTM price + volume | 64.45 |
+| LSTM price only | 49.32 |
+| LSTM price + volume | 65.33 |
 
 ### Key findings
 
@@ -115,7 +115,7 @@ These numbers come from the official run saved in the notebook. All evaluations 
 
 ### Deployment decision
 
-The historical demonstration predicted a close of $253.67 for September 30, 2026, using data through September 29, 2026, when the last close was $329.40. The selected model's 20-day historical replay had an MAE of $78.22, compared with $3.85 for the log-return version.
+The historical demonstration predicted a close of $253.65 for September 30, 2026, using data through September 29, 2026, when the last close was $329.40. The selected model's 20-day historical replay had an MAE of $78.24, compared with $3.85 for the log-return version.
 
 Production deployment is not recommended, because no model outperformed the simple forecasting baselines. This was a historical demonstration, not a current stock-price forecast.
 
