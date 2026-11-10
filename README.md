@@ -15,9 +15,12 @@ Stock_Price_DL/
 ├── requirements-linux-gpu.txt      <- the same, plus CUDA libraries for Linux or WSL GPUs
 ├── data/
 │   └── AAPL_only.csv               <- daily AAPL closing price and volume data
+├── src/
+│   └── extract_aapl.py             <- recreates the AAPL data from the original Kaggle file
 ├── notebooks/
 │   └── Team7_Deep_Learning_Final_Project.ipynb   <- all code, results and report text
 ├── docs/                           <- concept and team guides
+├── stock_eval312_*.yml / *.txt     <- record of Basma's original Mac environment
 └── artifacts/                      <- created by the notebook: models, scalers, logs (not in Git)
 ```
 
@@ -43,6 +46,8 @@ python -m pip install -r requirements.txt
 ```
 
 **NVIDIA GPU:** use Linux or WSL and install `requirements-linux-gpu.txt` in the last step instead. TensorFlow 2.10 was the last version with native GPU support on Windows, so TensorFlow 2.16 only uses the CPU on native Windows.
+
+The `stock_eval312_history.yml`, `stock_eval312_pip.txt` and `stock_eval312_packages.txt` files record Basma's Mac environment from before the final notebook. Install from `requirements.txt` instead: those files do not include KerasTuner, and their setuptools version is too new for TensorBoard 2.16.
 
 ---
 
@@ -113,3 +118,54 @@ These numbers come from the official run saved in the notebook. All evaluations 
 The historical demonstration predicted a close of $253.67 for September 30, 2026, using data through September 29, 2026, when the last close was $329.40. The selected model's 20-day historical replay had an MAE of $78.22, compared with $3.85 for the log-return version.
 
 Production deployment is not recommended, because no model outperformed the simple forecasting baselines. This was a historical demonstration, not a current stock-price forecast.
+
+## Dataset Source and Reproducibility 
+### Original Dataset
+
+The original dataset was obtained from Kaggle:
+S&P500 All Assets – Daily Updated Dataset.
+
+Source file: SnP_daily_update.csv
+
+The project uses Apple's (AAPL) historical closing prices
+and daily trading volumes from January 4, 2010, through
+September 29, 2026.
+
+The AAPL data was extracted from the original dataset
+using the Close and Volume columns associated with
+the AAPL ticker symbol.
+
+The extracted dataset contains 4,210 trading-day records
+and is stored in data/AAPL_only.csv.
+
+### Dataset Extraction Procedure
+
+The AAPL dataset can be reproduced using the Python script
+located at src/extract_aapl.py.
+
+The script performs the following steps:
+
+1. Reads SnP_daily_update.csv using its two-row header.
+2. Selects the Close and Volume columns for ticker AAPL.
+3. Preserves the original trading dates and numerical values.
+4. Creates data/AAPL_only_verified.csv.
+5. Leaves the existing data/AAPL_only.csv unchanged.
+
+Run the extraction script from the project root:
+
+    python src/extract_aapl.py
+
+### Dataset Verification
+
+The extracted data was compared with the existing
+project dataset using pandas.
+
+Verification results:
+
+- Original dataset: 4,210 AAPL records.
+- Recreated dataset: 4,210 AAPL records.
+- Data values match: True.
+
+The comparison confirmed that the recreated dataset
+matches the existing project dataset when loaded
+using pandas.
