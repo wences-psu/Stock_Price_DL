@@ -1,6 +1,7 @@
 """
 config.py - Central configuration for the whole project.
 
+Every notebook and module reads its settings from here.
 """
 
 from pathlib import Path
@@ -17,6 +18,13 @@ PLOTS_DIR = ARTIFACTS_DIR / "plots"                          # figures saved by 
 METRICS_PATH = ARTIFACTS_DIR / "metrics.csv"                 # model comparison table
 
 TICKER = "AAPL"  # only used for titles/labels
+
+# ---------------------------------------------------------------------------
+# Running the notebooks
+# ---------------------------------------------------------------------------
+# RETRAIN = True  -> notebook 03 trains every model from scratch.
+# RETRAIN = False -> it reloads the models saved in artifacts/ by an earlier complete run.
+RETRAIN = True
 
 # ---------------------------------------------------------------------------
 # Data selection
@@ -48,10 +56,10 @@ USE_VOLUME = False
 # What the network learns to predict:
 #   "log_return": tomorrow's log return, ln(Close_{t+1} / Close_t). The price is
 #                 reconstructed afterwards as Close_t * exp(predicted_return).
-#                 (Recommended - see docs/02_time_series_concepts.md.)
-#   "price":      tomorrow's closing price directly (scaled). Kept so you can
-#                 compare and see why this is usually a worse idea.
-TARGET_MODE = "price"
+#                 Used by the six models (see docs/02_time_series_concepts.md).
+#   "price":      tomorrow's closing price directly (scaled). Kept for comparison;
+#                 its runs are saved with a "_price-target" suffix.
+TARGET_MODE = "log_return"
 
 # Window size for the moving average baseline.
 MA_WINDOW = 5
@@ -68,6 +76,6 @@ LEARNING_RATE = 1e-3  # step size for the Adam optimizer
 DROPOUT = 0.2         # fraction of units randomly switched off during training (regularization)
 PATIENCE = 10         # epochs without validation improvement before early stopping
 
-# Random seed: makes weight initialization and shuffling repeatable.
+# Random seed: makes weight initialization and dropout repeatable.
 # (GPU kernels can still add tiny non-deterministic differences.)
 SEED = 42

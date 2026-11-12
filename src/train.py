@@ -9,10 +9,8 @@ What gets saved (one folder per run, e.g. artifacts/lstm_close_volume/):
     history.json           loss/metric per epoch (for learning curves)
 """
 
-import argparse
 import json
 import os
-import random
 import sys
 import time
 from dataclasses import dataclass
@@ -32,6 +30,7 @@ from tensorflow import keras
 
 import config
 from src.models import build_model
+from src.predict import load_artifacts
 from src.preprocessing import PreparedData, load_prepared_data
 
 
@@ -54,12 +53,10 @@ class TrainingResult:
 def set_seeds(seed: int = config.SEED) -> None:
     """
     Fix every source of randomness we control (Python, NumPy, TensorFlow),
-    so re-running an experiment gives (nearly) the same result.
+    so re-running an experiment gives the same result on the same hardware.
     """
     os.environ["PYTHONHASHSEED"] = str(seed)
-    random.seed(seed)
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
+    keras.utils.set_random_seed(seed)
 
 
 def run_name(model_name: str, use_volume: bool, target_mode: str = config.TARGET_MODE) -> str:
@@ -85,19 +82,26 @@ def train_model(
 ) -> TrainingResult:
     """
     Full training run: prepare data -> build model -> fit -> save artifacts.
+
+    Every run starts from a cleared Keras session and the same seed, so its
+    result does not depend on which runs were trained before it.
     """
+    keras.backend.clear_session()
     set_seeds(config.SEED)
     name = run_name(model_name, use_volume, target_mode)
     out_dir = Path(artifacts_dir) / name
     out_dir.mkdir(parents=True, exist_ok=True)
-    print(f"\n=== Training run: {name} ===")
+    if verbose:
+        print(f"\n=== Training run: {name} ===")
 
     # Data preparation (see src/preprocessing.py)
     data = load_prepared_data(
-        use_volume=use_volume, target_mode=target_mode, lookback=lookback, start_date=start_date
+        use_volume=use_volume, target_mode=target_mode, lookback=lookback, start_date=start_date,
+        verbose=bool(verbose),
     )
     train, val = data.splits["train"], data.splits["val"]
-    print(f"[train] features={data.feature_columns}  X_train={train.X.shape}  X_val={val.X.shape}")
+    if verbose:
+        print(f"[train] features={data.feature_columns}  X_train={train.X.shape}  X_val={val.X.shape}")
 
     # Build the network (see src/models.py)
     input_shape = train.X.shape[1:]  # (lookback, n_features)
@@ -113,7 +117,7 @@ def train_model(
         # If validation loss plateaus, halve the learning rate so the optimizer
         # can take finer steps toward a minimum.
         keras.callbacks.ReduceLROnPlateau(
-            monitor="val_loss", factor=0.5, patience=max(1, patience // 2), min_lr=1e-5, verbose=1
+            monitor="val_loss", factor=0.5, patience=max(1, patience // 2), min_lr=1e-5, verbose=1 if verbose else 0
         ),
         # Save the best model seen so far to disk (useful if training is interrupted).
         keras.callbacks.ModelCheckpoint(str(out_dir / MODEL_FILENAME), monitor="val_loss", save_best_only=True),
@@ -175,14 +179,57 @@ def train_model(
         "train_seconds": round(train_seconds, 1),
         "trained_at": datetime.now().isoformat(timespec="seconds"),
         "tensorflow_version": tf.__version__,
-        "data_path": str(config.DATA_PATH),
+        "data_path": Path(config.DATA_PATH).resolve().relative_to(PROJECT_ROOT).as_posix(),
     }
     with open(out_dir / "metadata.json", "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
 
     print(
-        f"[train] Done in {train_seconds:.0f}s - {metadata['epochs_run']} epochs, "
-        f"best epoch {best_epoch}, best val_loss {metadata['best_val_loss']:.4f}. Saved to {out_dir}"
+        f"{name:<24} {metadata['epochs_run']:>3} epochs, best epoch {best_epoch:>3}, "
+        f"val_loss {metadata['best_val_loss']:.4f}, {train_seconds:.0f}s"
     )
     return TrainingResult(model=model, history=history_dict, data=data, artifact_dir=out_dir, metadata=metadata)
+
+
+def load_run(name: str, artifacts_dir: Path = config.ARTIFACTS_DIR) -> TrainingResult:
+    """
+    Reload a saved run (model, history, metadata) and rebuild its data with
+    the run's own saved scalers, so nothing is refitted.
+    """
+    run_dir = Path(artifacts_dir) / name
+    arts = load_artifacts(run_dir)
+    meta = arts["metadata"]
+    with open(run_dir / "history.json", "r", encoding="utf-8") as f:
+        history = json.load(f)
+    data = load_prepared_data(
+        use_volume=meta["use_volume"],
+        target_mode=meta["target_mode"],
+        lookback=meta["lookback"],
+        start_date=meta["start_date"],
+        feature_scaler=arts["feature_scaler"],
+        target_scaler=arts["target_scaler"],
+        verbose=False,
+    )
+    return TrainingResult(model=arts["model"], history=history, data=data, artifact_dir=run_dir, metadata=meta)
+
+
+def train_or_load(
+    model_name: str,
+    use_volume: bool,
+    retrain: Optional[bool] = None,
+    target_mode: str = config.TARGET_MODE,
+    artifacts_dir: Path = config.ARTIFACTS_DIR,
+) -> TrainingResult:
+    """
+    Train a run when retrain is True (config.RETRAIN by default); otherwise
+    reload the copy saved in artifacts/ by an earlier complete run.
+    """
+    retrain = config.RETRAIN if retrain is None else retrain
+    if retrain:
+        return train_model(model_name, use_volume, target_mode, artifacts_dir=artifacts_dir, verbose=0)
+    result = load_run(run_name(model_name, use_volume, target_mode), artifacts_dir)
+    m = result.metadata
+    print(f"{m['run_name']:<24} reloaded ({m['epochs_run']} epochs, best epoch {m['best_epoch']}, "
+          f"val_loss {m['best_val_loss']:.4f})")
+    return result
 

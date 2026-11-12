@@ -22,6 +22,11 @@ Preprocessing for time series:
    last LOOKBACK days of features and pair it with the target for day t+1:
 
        X[i] = features[t-LOOKBACK+1 ... t]     y[i] = target[t]  (= value of day t+1)
+
+4. NO TARGET CROSSES A SPLIT BOUNDARY
+   The target of the last row of a split describes the first day of the next
+   split. That row is therefore not used as a training/validation sample, and
+   the target scaler is fitted without it.
 """
 
 from dataclasses import dataclass, field
@@ -120,10 +125,13 @@ def fit_scalers(
 
     Two separate scalers are used because the target must be converted back
     to its original units later (inverse_transform), independent of the inputs.
+
+    The target scaler uses rows [0, train_end - 1): the target of the last
+    training row is the first validation day, so it is left out.
     """
     train_rows = frame.iloc[:train_end]
     feature_scaler = StandardScaler().fit(train_rows[feature_columns].to_numpy())
-    target_scaler = StandardScaler().fit(train_rows[["target"]].to_numpy())
+    target_scaler = StandardScaler().fit(frame[["target"]].iloc[: train_end - 1].to_numpy())
     return feature_scaler, target_scaler
 
 
@@ -135,8 +143,9 @@ def make_windows(
 
     A window for day t may reach back before `start` (into the previous split).
     That is fine: those are *past inputs* that would be known on day t in real
-    life. What must never cross into the future is the target, and each target
-    here belongs to day t+1 of the same split.
+    life. What must never cross into the future is the target; prepare_data
+    passes end - 1 for the train and validation splits so that every target
+    (day t+1) stays inside its own split.
 
     Returns
     -------
@@ -182,7 +191,9 @@ def prepare_data(
 
     splits = {}
     for name, (start, end) in boundaries.items():
-        X, t_idx = make_windows(features_scaled, lookback, start, end)
+        # The last train/val row's target is the first day of the next split: skip it.
+        last = end if name == "test" else end - 1
+        X, t_idx = make_windows(features_scaled, lookback, start, last)
         if len(t_idx) == 0:
             raise ValueError(f"The '{name}' split has no samples; reduce LOOKBACK or use more data.")
         splits[name] = SplitWindows(
@@ -222,10 +233,7 @@ def load_prepared_data(
     Convenience pipeline: load CSV -> engineer features/target -> split, scale, window.
     """
     df = load_stock_data(data_path, start_date=start_date, verbose=verbose)
-    frame = build_modeling_frame(df)
-    if target_mode == "log_return":
-        frame["target"] = np.log(frame["next_close"] / frame["Close"])
-        frame = frame.dropna(subset=["target"])
+    frame = build_modeling_frame(df, target_mode=target_mode)
     feature_columns = get_feature_columns(use_volume)
     return prepare_data(
         frame,

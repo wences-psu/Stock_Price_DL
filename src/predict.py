@@ -10,7 +10,6 @@ lookback, same fitted scalers. Training saves them next to
 the model (see src/train.py).
 """
 
-import argparse
 import json
 import sys
 from pathlib import Path
