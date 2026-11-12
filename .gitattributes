@@ -1,5 +1,13 @@
 * text eol=lf
 
+# Binary files: never convert line endings (the rule above would corrupt them)
+*.keras binary
+*.h5 binary
+*.joblib binary
+*.pkl binary
+*.png binary
+events.out.tfevents.* binary
+
 # Notebooks: strip outputs and kernel/Python metadata on commit (needs nbstripout, see docs/notebook-maintenance.md)
 *.ipynb filter=nbstripout
 *.ipynb diff=ipynb

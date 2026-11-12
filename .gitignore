@@ -1,8 +1,5 @@
-/artifacts/*
-/data/*
-# Exceptions: the folder placeholder and the small AAPL dataset the notebooks need
-!/data/.gitkeep
-!/data/AAPL_only.csv
+# data/ and artifacts/ are tracked on purpose: the dataset, derived data, trained
+# models, scalers, logs and plots are part of the deliverable.
 **/__pycache__/
 *.pyc
 **/.vscode/
