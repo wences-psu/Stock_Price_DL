@@ -76,11 +76,11 @@ An LSTM has 4 weight sets (3 gates + candidate), each over `[h_{t-1}, x_t]`:
 
 $$\text{params} = 4 \times \big(u \times (u + d) + u\big) \quad (u = \text{units}, d = \text{input dim})$$
 
-| Layer (with 3 features) | Computation | Parameters |
+| Layer (with 2 features: Close, Volume) | Computation | Parameters |
 |---|---|---|
-| LSTM(64), d=3 | 4 × (64 × 67 + 64) | 17,408 |
+| LSTM(64), d=2 | 4 × (64 × 66 + 64) | 17,152 |
 | Dense(1) from 64 | 64 + 1 | 65 |
-| **Total** | | **17,473** |
+| **Total** | | **17,217** |
 
 ---
 
@@ -188,9 +188,9 @@ With noisy financial targets, if the best validation epoch occurs early it means
 
 | Object | Shape (price only) | Shape (with volume) |
 |---|---|---|
-| `X_train` | (2876, 60, 1) | (2876, 60, 3) |
-| `y_train` | (2876,) | (2876,) |
-| Model input | (None, 60, 1) | (None, 60, 3) |
+| `X_train` | (2885, 60, 1) | (2885, 60, 2) |
+| `y_train` | (2885,) | (2885,) |
+| Model input | (None, 60, 1) | (None, 60, 2) |
 | Model output | (None, 1) | (None, 1) |
 
 `None` is the batch dimension, which can be any size.
@@ -199,4 +199,4 @@ With noisy financial targets, if the best validation epoch occurs early it means
 
 ## 11. Reproducibility
 
-`set_seeds()` fixes the Python, NumPy and TensorFlow random seeds, so weight initialization, dropout masks and shuffling are repeatable. Results can still differ slightly between CPU and GPU or between library versions. With a weak signal, those small differences can change the ranking of models, which is why notebook 04 uses a statistical test and we recommend averaging several seeds.
+Before every run, `train_model` clears the Keras session and calls `set_seeds()`, which uses `keras.utils.set_random_seed(SEED)` to fix the Python, NumPy and TensorFlow random seeds, so weight initialization and dropout masks are repeatable and the order of the runs does not change the results. Results can still differ slightly between CPU and GPU or between library versions. With a weak signal, those small differences can change the ranking of models, which is why notebook 04 uses a statistical test and we recommend averaging several seeds.

@@ -22,7 +22,7 @@ flowchart LR
 | 3 | **Data preparation** | Data selection. Cleanse Data. Chronological split. Feature engineering. | `notebooks/02_data_preparation.ipynb` |
 | 4 | **Modeling** | Select Models. Design Models. Build Models. Train Models. | `notebooks/03_modeling.ipynb` |
 | 5 | **Evaluation** | Asses the model metrics compared with baselines. Verify success criteria is meet. | `notebooks/04_evaluation.ipynb` |
-| 6 | **Deployment** | Plan deployment. Setup Model Monitoring. Define thresholds to retrain Model when it starts drifting. | `notebooks/05_deployment_demo.ipynb` |
+| 6 | **Deployment** | Plan deployment. Setup Model Monitoring. Define thresholds to retrain Model when it starts drifting. | `notebooks/05_deployment.ipynb` |
 
 
 **Design principle:** notebooks explain the project, while `src/` modules contain the Deep Learning Models logic and helper functions. This way the logic can be used again in the next iteration and the logic that was evaluated is exactly the logic that gets deployed.

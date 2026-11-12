@@ -23,10 +23,10 @@ A series is **stationary** when its mean and variance stay roughly constant over
 
 | Series | Stationary |
 |---|---|
-| Close price | Not stationary because AAPL went from ~$6 (2010, split-adjusted) to ~$316 (2026); the mean keeps rising |
+| Close price | Not stationary because AAPL went from ~$6 (2010, split-adjusted) to ~$329 (2026); the mean keeps rising |
 | Daily log return | Is stationary because it fluctuates around ~0.1% per day in every period |
 
-**Relevance for neural networks.** A network learns a mapping from the input ranges it saw during training. In this project the training prices range from $5.74 to $149.35 while the test prices range from $163.22 to $339.79, so a price predicting network must **extrapolate**, which neural networks do poorly.
+**Relevance for neural networks.** A network learns a mapping from the input ranges it saw during training. In this project the training prices range from $5.74 to $152.83 while the test prices range from $163.22 to $341.07, so a price predicting network must **extrapolate**, which neural networks do poorly. Predicting the log return keeps the **target** in a stable range. The six models still receive the scaled closing price (and volume) as **inputs**, so their inputs in the test period also lie outside the training range (see notebook 02 and the bias analysis in notebook 04).
 
 **The "tomorrow = today" baseline.** When a network predicts raw prices, the easiest way to get a low error is to output something very close to the last price in the window. The prediction chart looks good, but the model has learned nothing beyond the naive forecast.
 

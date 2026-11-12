@@ -1,0 +1,41 @@
+{
+  "run_name": "gru_close_volume",
+  "model_name": "gru",
+  "use_volume": true,
+  "target_mode": "log_return",
+  "feature_columns": [
+    "Close",
+    "Volume"
+  ],
+  "lookback": 60,
+  "start_date": "2010-01-04",
+  "train_ratio": 0.7,
+  "val_ratio": 0.15,
+  "splits": {
+    "train": {
+      "samples": 2885,
+      "first_target_date": "2010-04-01",
+      "last_target_date": "2021-09-15"
+    },
+    "val": {
+      "samples": 630,
+      "first_target_date": "2021-09-17",
+      "last_target_date": "2024-03-20"
+    },
+    "test": {
+      "samples": 632,
+      "first_target_date": "2024-03-22",
+      "last_target_date": "2026-09-29"
+    }
+  },
+  "epochs_run": 12,
+  "best_epoch": 2,
+  "best_val_loss": 0.384797602891922,
+  "batch_size": 32,
+  "learning_rate": 0.001,
+  "n_parameters": 13121,
+  "train_seconds": 16.9,
+  "trained_at": "2026-11-12T16:21:27",
+  "tensorflow_version": "2.16.2",
+  "data_path": "data/AAPL_only.csv"
+}

@@ -10,7 +10,7 @@ Each training run writes a self-contained folder in `artifacts/`:
 
 ```
 artifacts/lstm_close_volume/
-├── model.h5                  # network architecture + trained weights
+├── model.keras               # network architecture + trained weights
 ├── feature_scaler.joblib     # StandardScaler fitted on TRAINING features
 ├── target_scaler.joblib      # StandardScaler fitted on TRAINING targets
 ├── metadata.json             # features, lookback, target mode, dates, settings
@@ -25,7 +25,7 @@ artifacts/lstm_close_volume/
 
 The model's output must be converted back using the same target mode and target scaler. Saving all of these together prevents a production bug where inference preprocessing differs slightly from training.
 
-> **Format note:** TensorFlow 2.10 saves `.h5` (HDF5) or SavedModel folders. The newer `.keras` format needs TF ≥ 2.12.
+> **Format note:** the project uses TensorFlow 2.16 with Keras 3, which saves the native `.keras` format. `src/predict.py` can still load an older `.h5` file.
 
 ---
 
@@ -81,7 +81,7 @@ Run with `uvicorn api:app --port 8000`, then open `http://localhost:8000/docs`.
 
 ### Containerizing with Docker
 ```dockerfile
-FROM python:3.9-slim
+FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt fastapi uvicorn
