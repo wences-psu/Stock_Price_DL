@@ -97,9 +97,7 @@ A full run takes about 25 minutes on a laptop CPU, most of it in the tuning step
 
 ## Alternative: single notebook
 
-[`notebooks/Team7_Deep_Learning_Final_Project.ipynb`](notebooks/Team7_Deep_Learning_Final_Project.ipynb) contains the whole project, code and report text, in one notebook that needs no other project code. Use it when a single-file submission is required. It has its own copy of the code, follows exactly the same steps as notebooks 01-06, writes the same run folders in `artifacts/`, and gives the same results; its saved outputs are the official CPU run quoted below.
-
-**To drop it**, delete the notebook file, this section and the row for it in the project structure above, and the "Alternative: the single notebook" paragraphs in [`docs/01_crisp_dm_workflow.md`](docs/01_crisp_dm_workflow.md) and [`docs/notebook-maintenance.md`](docs/notebook-maintenance.md). Nothing else depends on it.
+[`notebooks/Team7_Deep_Learning_Final_Project.ipynb`](notebooks/Team7_Deep_Learning_Final_Project.ipynb) contains the whole project, code and report text, in one notebook that needs no other project code. It is based on the code temaplate notebook. It has its own copy of the code, follows exactly the same steps as notebooks 01-06, writes the same run folders in `artifacts/`, and gives the same results; its saved outputs are the official CPU run quoted below.
 
 ---
 
