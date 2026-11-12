@@ -43,13 +43,15 @@ def build_lstm(
     input_shape: Tuple[int, int],
     learning_rate: float = config.LEARNING_RATE,
     dropout: float = config.DROPOUT,
+    units: int = config.UNITS,
+    kernel_size: int = config.KERNEL_SIZE,
 ) -> keras.Model:
     """
     LSTM
     """
     model = keras.Sequential([
             layers.Input(shape=input_shape),
-            layers.LSTM(64),
+            layers.LSTM(units),
             layers.Dropout(dropout),
             layers.Dense(1)
         ],
@@ -61,13 +63,15 @@ def build_gru(
     input_shape: Tuple[int, int],
     learning_rate: float = config.LEARNING_RATE,
     dropout: float = config.DROPOUT,
+    units: int = config.UNITS,
+    kernel_size: int = config.KERNEL_SIZE,
 ) -> keras.Model:
     """
     GRU
     """
     model = keras.Sequential([
             layers.Input(shape=input_shape),
-            layers.GRU(64),
+            layers.GRU(units),
             layers.Dropout(dropout),
             layers.Dense(1)
         ],
@@ -79,13 +83,15 @@ def build_cnn1d(
     input_shape: Tuple[int, int],
     learning_rate: float = config.LEARNING_RATE,
     dropout: float = config.DROPOUT,
+    units: int = config.UNITS,
+    kernel_size: int = config.KERNEL_SIZE,
 ) -> keras.Model:
     """
     1D Convolutional network
     """
     model = keras.Sequential([
             layers.Input(shape=input_shape),
-            layers.Conv1D(64, kernel_size=5, activation="relu"),
+            layers.Conv1D(units, kernel_size=kernel_size, activation="relu"),
             layers.GlobalMaxPooling1D(),
             layers.Dropout(dropout),
             layers.Dense(1)
@@ -107,8 +113,16 @@ def build_model(
     input_shape: Tuple[int, int],
     learning_rate: float = config.LEARNING_RATE,
     dropout: float = config.DROPOUT,
+    units: int = config.UNITS,
+    kernel_size: int = config.KERNEL_SIZE,
 ) -> keras.Model:
-    """Build and compile a model by name."""
+    """
+    Build and compile a model by name.
+
+    units       : LSTM/GRU units, or CNN filters.
+    kernel_size : CNN kernel size (ignored by LSTM and GRU).
+    """
     if name not in MODEL_BUILDERS:
         raise ValueError(f"Unknown model '{name}'. Choose from {list(MODEL_BUILDERS)}.")
-    return MODEL_BUILDERS[name](input_shape, learning_rate=learning_rate, dropout=dropout)
+    return MODEL_BUILDERS[name](input_shape, learning_rate=learning_rate, dropout=dropout,
+                                units=units, kernel_size=kernel_size)

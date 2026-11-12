@@ -142,6 +142,26 @@ def evaluate_model(model, data: PreparedData, run_label: str, split: str = "test
     return pred_df, table[["kind"] + METRIC_COLUMNS]
 
 
+def comparison_table(results: dict, split: str = "test") -> pd.DataFrame:
+    """
+    One table with several versions of a model and the baselines on one split, sorted by RMSE.
+
+    `results` maps a label to an object with .model and .data (e.g. a TrainingResult).
+    All versions must predict the same dates, so the baselines are shared.
+    """
+    rows, pred_df, dates = [], None, None
+    for label, result in results.items():
+        pred_df = predict_split(result.model, result.data, split)
+        if dates is not None and not pred_df.index.equals(dates):
+            raise ValueError(f"Prediction dates do not match for {label}.")
+        dates = pred_df.index
+        m = regression_metrics(pred_df["actual"], pred_df["predicted"], pred_df["close_t"])
+        m.update({"run": label, "kind": "model"})
+        rows.append(m)
+    table = pd.concat([pd.DataFrame(rows).set_index("run"), baseline_metrics(pred_df)])
+    return table[["kind"] + METRIC_COLUMNS].sort_values("RMSE")
+
+
 def compare_runs(
     run_names: Optional[Iterable[str]] = None,
     artifacts_dir: Path = config.ARTIFACTS_DIR,

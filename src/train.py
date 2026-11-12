@@ -59,12 +59,38 @@ def set_seeds(seed: int = config.SEED) -> None:
     keras.utils.set_random_seed(seed)
 
 
-def run_name(model_name: str, use_volume: bool, target_mode: str = config.TARGET_MODE) -> str:
-    """Folder name for a run, e.g. 'lstm_close', 'gru_close_volume', 'lstm_close_price-target'."""
+def run_name(model_name: str, use_volume: bool, target_mode: str = config.TARGET_MODE, suffix: str = "") -> str:
+    """
+    Folder name for a run, e.g. 'lstm_close', 'gru_close_volume', 'lstm_close_price-target',
+    or 'lstm_close_volume_tuned' with suffix='_tuned'.
+    """
     name = f"{model_name}_{'close_volume' if use_volume else 'close'}"
     if target_mode != "log_return":
         name += "_price-target"
-    return name
+    return name + suffix
+
+
+def training_callbacks(
+    checkpoint_path: Optional[Path] = None, patience: int = config.PATIENCE, verbose: int = 0
+) -> list:
+    """
+    Code Keras runs at the end of each epoch (shared by train_model and the tuner).
+
+    EarlyStopping     : stop when validation loss has not improved for `patience` epochs
+                        and roll back to the best weights (prevents overfitting).
+    ReduceLROnPlateau : halve the learning rate when validation loss plateaus, so the
+                        optimizer can take finer steps toward a minimum.
+    ModelCheckpoint   : save the best model seen so far (only when checkpoint_path is given).
+    """
+    callbacks = [
+        keras.callbacks.EarlyStopping(monitor="val_loss", patience=patience, restore_best_weights=True),
+        keras.callbacks.ReduceLROnPlateau(
+            monitor="val_loss", factor=0.5, patience=max(1, patience // 2), min_lr=1e-5, verbose=1 if verbose else 0
+        ),
+    ]
+    if checkpoint_path is not None:
+        callbacks.append(keras.callbacks.ModelCheckpoint(str(checkpoint_path), monitor="val_loss", save_best_only=True))
+    return callbacks
 
 
 def train_model(
@@ -79,16 +105,24 @@ def train_model(
     start_date: Optional[str] = config.START_DATE,
     artifacts_dir: Path = config.ARTIFACTS_DIR,
     verbose: int = 2,
+    units: int = config.UNITS,
+    kernel_size: int = config.KERNEL_SIZE,
+    dropout: float = config.DROPOUT,
+    suffix: str = "",
 ) -> TrainingResult:
     """
     Full training run: prepare data -> build model -> fit -> save artifacts.
+
+    units, kernel_size, dropout, learning_rate and batch_size default to the
+    shared settings in config.py; notebook 06 passes the tuned values and
+    suffix="_tuned" so the tuned run gets its own folder.
 
     Every run starts from a cleared Keras session and the same seed, so its
     result does not depend on which runs were trained before it.
     """
     keras.backend.clear_session()
     set_seeds(config.SEED)
-    name = run_name(model_name, use_volume, target_mode)
+    name = run_name(model_name, use_volume, target_mode, suffix)
     out_dir = Path(artifacts_dir) / name
     out_dir.mkdir(parents=True, exist_ok=True)
     if verbose:
@@ -105,23 +139,13 @@ def train_model(
 
     # Build the network (see src/models.py)
     input_shape = train.X.shape[1:]  # (lookback, n_features)
-    model = build_model(model_name, input_shape, learning_rate=learning_rate)
+    model = build_model(model_name, input_shape, learning_rate=learning_rate, dropout=dropout,
+                        units=units, kernel_size=kernel_size)
     if verbose:
         model.summary()
 
-    # Callbacks: code Keras runs at the end of each epoch
-    callbacks = [
-        # Stop when validation loss has not improved for `patience` epochs and
-        # roll back to the best weights -> prevents overfitting and wasted time.
-        keras.callbacks.EarlyStopping(monitor="val_loss", patience=patience, restore_best_weights=True),
-        # If validation loss plateaus, halve the learning rate so the optimizer
-        # can take finer steps toward a minimum.
-        keras.callbacks.ReduceLROnPlateau(
-            monitor="val_loss", factor=0.5, patience=max(1, patience // 2), min_lr=1e-5, verbose=1 if verbose else 0
-        ),
-        # Save the best model seen so far to disk (useful if training is interrupted).
-        keras.callbacks.ModelCheckpoint(str(out_dir / MODEL_FILENAME), monitor="val_loss", save_best_only=True),
-    ]
+    # Callbacks: EarlyStopping, ReduceLROnPlateau and ModelCheckpoint (see training_callbacks)
+    callbacks = training_callbacks(out_dir / MODEL_FILENAME, patience=patience, verbose=verbose)
 
     # Fit
     # Keep training windows in chronological order.
@@ -175,6 +199,9 @@ def train_model(
         "best_val_loss": float(min(history_dict["val_loss"])),
         "batch_size": batch_size,
         "learning_rate": learning_rate,
+        "units": units,
+        "kernel_size": kernel_size,
+        "dropout": dropout,
         "n_parameters": int(model.count_params()),
         "train_seconds": round(train_seconds, 1),
         "trained_at": datetime.now().isoformat(timespec="seconds"),
@@ -219,15 +246,21 @@ def train_or_load(
     retrain: Optional[bool] = None,
     target_mode: str = config.TARGET_MODE,
     artifacts_dir: Path = config.ARTIFACTS_DIR,
+    hparams: Optional[dict] = None,
+    suffix: str = "",
 ) -> TrainingResult:
     """
     Train a run when retrain is True (config.RETRAIN by default); otherwise
     reload the copy saved in artifacts/ by an earlier complete run.
+
+    hparams: optional dict with any of units, kernel_size, dropout,
+    learning_rate and batch_size (e.g. the best tuning trial).
     """
     retrain = config.RETRAIN if retrain is None else retrain
     if retrain:
-        return train_model(model_name, use_volume, target_mode, artifacts_dir=artifacts_dir, verbose=0)
-    result = load_run(run_name(model_name, use_volume, target_mode), artifacts_dir)
+        return train_model(model_name, use_volume, target_mode, artifacts_dir=artifacts_dir, verbose=0,
+                           suffix=suffix, **(hparams or {}))
+    result = load_run(run_name(model_name, use_volume, target_mode, suffix), artifacts_dir)
     m = result.metadata
     print(f"{m['run_name']:<24} reloaded ({m['epochs_run']} epochs, best epoch {m['best_epoch']}, "
           f"val_loss {m['best_val_loss']:.4f})")

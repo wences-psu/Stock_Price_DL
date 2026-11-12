@@ -148,3 +148,16 @@ def predict_next_day(
         "predicted_change_pct": (predicted_close / last_close - 1) * 100,
     }
 
+
+def simulate_recent(artifacts: Union[str, Path, dict], df: pd.DataFrame, days: int = 20) -> pd.DataFrame:
+    """Replay the last `days` trading days, using only the data known on each day."""
+    if not isinstance(artifacts, dict):
+        artifacts = load_artifacts(artifacts)
+    rows = []
+    for as_of in df.index[-(days + 1):-1]:
+        p = predict_next_day(artifacts, df.loc[:as_of])
+        actual_next = df["Close"].iloc[df.index.get_loc(as_of) + 1]
+        rows.append({"as of": as_of.date(), "last close": p["last_close"], "predicted next": p["predicted_close"],
+                     "actual next": actual_next, "error ($)": p["predicted_close"] - actual_next})
+    return pd.DataFrame(rows).set_index("as of")
+

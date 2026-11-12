@@ -15,6 +15,7 @@ DATA_DIR = PROJECT_ROOT / "data"                             # data directory
 DATA_PATH = DATA_DIR / "AAPL_only.csv"                       # raw input data
 ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"                   # trained models, scalers, metadata
 PLOTS_DIR = ARTIFACTS_DIR / "plots"                          # figures saved by the evaluation step
+TUNING_DIR = ARTIFACTS_DIR / "tuning"                        # KerasTuner trials (notebook 06)
 METRICS_PATH = ARTIFACTS_DIR / "metrics.csv"                 # model comparison table
 
 TICKER = "AAPL"  # only used for titles/labels
@@ -22,8 +23,8 @@ TICKER = "AAPL"  # only used for titles/labels
 # ---------------------------------------------------------------------------
 # Running the notebooks
 # ---------------------------------------------------------------------------
-# RETRAIN = True  -> notebook 03 trains every model from scratch.
-# RETRAIN = False -> it reloads the models saved in artifacts/ by an earlier complete run.
+# RETRAIN = True  -> notebooks 03 and 06 train every model (and run the tuning search) from scratch.
+# RETRAIN = False -> they reload the models and tuning results saved in artifacts/ by an earlier complete run.
 RETRAIN = True
 
 # ---------------------------------------------------------------------------
@@ -74,7 +75,10 @@ EPOCHS = 100          # maximum passes over the training data (early stopping us
 BATCH_SIZE = 32       # number of windows used for each weight update
 LEARNING_RATE = 1e-3  # step size for the Adam optimizer
 DROPOUT = 0.2         # fraction of units randomly switched off during training (regularization)
+UNITS = 64            # LSTM/GRU units, or CNN filters
+KERNEL_SIZE = 5       # CNN kernel size (days covered by one filter)
 PATIENCE = 10         # epochs without validation improvement before early stopping
+TUNER_TRIALS = 20     # hyperparameter combinations tried in notebook 06
 
 # Random seed: makes weight initialization and dropout repeatable.
 # (GPU kernels can still add tiny non-deterministic differences.)
