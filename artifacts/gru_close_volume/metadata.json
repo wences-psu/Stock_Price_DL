@@ -1,0 +1,24 @@
+{
+  "run_name": "gru_close_volume",
+  "model_name": "gru",
+  "target_mode": "price",
+  "feature_columns": [
+    "Close",
+    "Volume"
+  ],
+  "lookback": 60,
+  "hparams": {
+    "units": 64,
+    "kernel_size": 5,
+    "dropout": 0.2,
+    "learning_rate": 0.001,
+    "batch_size": 32
+  },
+  "epochs_run": 26,
+  "best_epoch": 16,
+  "best_val_loss": 0.0053389547392725945,
+  "n_parameters": 13121,
+  "train_seconds": 33.1,
+  "trained_at": "2026-11-11T20:50:49",
+  "tensorflow_version": "2.16.2"
+}

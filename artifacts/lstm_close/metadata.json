@@ -1,0 +1,23 @@
+{
+  "run_name": "lstm_close",
+  "model_name": "lstm",
+  "target_mode": "price",
+  "feature_columns": [
+    "Close"
+  ],
+  "lookback": 60,
+  "hparams": {
+    "units": 64,
+    "kernel_size": 5,
+    "dropout": 0.2,
+    "learning_rate": 0.001,
+    "batch_size": 32
+  },
+  "epochs_run": 31,
+  "best_epoch": 21,
+  "best_val_loss": 0.008344316855072975,
+  "n_parameters": 16961,
+  "train_seconds": 35.7,
+  "trained_at": "2026-11-11T20:49:28",
+  "tensorflow_version": "2.16.2"
+}
