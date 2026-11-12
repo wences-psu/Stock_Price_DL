@@ -8,11 +8,13 @@ pandas==2.2.3
 scikit-learn==1.6.1
 keras-tuner==1.4.8
 matplotlib==3.10.9
+# Diebold-Mariano test in notebook 04
+scipy==1.17.1
 joblib==1.6.0
 # TensorBoard 2.16 imports pkg_resources, which newer setuptools versions removed
 setuptools<81
 # Running the notebook
 jupyter
 ipykernel
-# Keeps other notebooks' outputs and kernel metadata out of Git
+# Strips execution counts and kernel metadata from notebooks on commit (outputs are kept)
 nbstripout>=0.6
