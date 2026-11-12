@@ -13,9 +13,12 @@ artifacts/lstm_close_volume/
 ├── model.keras               # network architecture + trained weights
 ├── feature_scaler.joblib     # StandardScaler fitted on TRAINING features
 ├── target_scaler.joblib      # StandardScaler fitted on TRAINING targets
-├── metadata.json             # features, lookback, target mode, dates, settings
-└── history.json              # per-epoch loss (learning curves)
+├── metadata.json             # features, lookback, target mode, hyperparameters, settings
+├── history.json              # per-epoch loss (learning curves)
+└── predictions_test.csv      # test-set predictions (written by notebook 04)
 ```
+
+The rest of `artifacts/` holds the comparison table (`metrics.csv`), the improvement tables (`improvements_*.csv`), the saved figures (`plots/`), the TensorBoard logs (`logs/`) and the KerasTuner trials (`tuning/`). All of it is tracked in Git, so the results can be inspected without retraining.
 
 **Note**: a model alone cannot make correct predictions. It expects inputs that were:
 1. built with the **same features** (`feature_columns` in the metadata),
@@ -24,16 +27,16 @@ artifacts/lstm_close_volume/
 
 The model's output must be converted back using the same target mode and target scaler. Saving all of these together prevents a production bug where inference preprocessing differs slightly from training.
 
-> **Format note:** the notebook saves models in the `.keras` format, which needs TensorFlow 2.12 or newer.
+> **Format note:** the models are saved in the `.keras` format, which needs TensorFlow 2.12 or newer.
 
 ---
 
-## 2. The inference pipeline (`predict_next_day` in the notebook)
+## 2. The inference pipeline (`src/predict.py`)
 
 ```mermaid
 flowchart LR
     new[(New Close and Volume data)] --> load[load_stock_data<br/>validate]
-    load --> feat[add_features_and_target<br/>same features]
+    load --> feat[build_inference_frame<br/>same features]
     feat --> win[last LOOKBACK rows]
     win --> scale[feature_scaler.transform]
     scale --> model[model.predict]
@@ -48,14 +51,11 @@ flowchart LR
 ## 3. How to use the model
 
 ### Python
-The notebook's deployment section reloads a saved run and predicts the next day:
-
 ```python
-reloaded = load_run(selected_run)
-print(predict_next_day(reloaded.model, reloaded_data, apple_df))
+from src.predict import predict_next_day
+result = predict_next_day("artifacts/gru_close_volume")
+print(result["predicted_close"])
 ```
-
-To use this outside the notebook, copy `load_stock_data`, `add_features_and_target`, `load_run`, `to_price` and `predict_next_day` into a `predict.py` file, and add a small `load_data_and_model` function that returns the model and the scaler and settings object the notebook calls `reloaded_data`.
 
 ---
 
@@ -64,20 +64,20 @@ To use this outside the notebook, copy `load_stock_data`, `add_features_and_targ
 A web API lets other applications request predictions over HTTP. A minimal FastAPI version (not included in the repo; install `fastapi` and `uvicorn` first):
 
 ```python
-# api.py: predict.py holds the functions copied from the notebook, as described in section 3
+# api.py
 from fastapi import FastAPI
-from predict import load_data_and_model, load_stock_data, predict_next_day
+from src.predict import load_artifacts, predict_next_day
 
 app = FastAPI(title="Next-day close API")
-MODEL, DATA = load_data_and_model("gru_close_volume")   # load once at startup
+ARTIFACTS = load_artifacts("artifacts/gru_close_volume")   # load once at startup
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": "gru_close_volume"}
+    return {"status": "ok", "model": ARTIFACTS["metadata"]["run_name"]}
 
 @app.get("/predict")
 def predict():
-    return predict_next_day(MODEL, DATA, load_stock_data())
+    return predict_next_day(ARTIFACTS)
 ```
 Run with `uvicorn api:app --port 8000`, then open `http://localhost:8000/docs`.
 
@@ -87,7 +87,8 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt fastapi uvicorn
-COPY predict.py api.py ./
+COPY config.py ./
+COPY src/ src/
 COPY artifacts/gru_close_volume/ artifacts/gru_close_volume/
 COPY data/ data/
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
