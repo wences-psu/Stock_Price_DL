@@ -9,7 +9,7 @@ This guide keeps collaboration predictable. The short version is: update your lo
 - Pull requests are the normal way to merge work into `main`.
 - One teammate reviews the pull request before it is merged.
 - Keep commits focused and describe what changed.
-- Do not commit passwords, API keys, local environments, downloaded data, model files, or generated artifacts. Check `.gitignore` when unsure.
+- Do not commit passwords, API keys, local environments, or large raw downloads. The project data in `data/`, the artifacts in `artifacts/` and the notebook outputs are tracked on purpose; commit them only from a complete run (see `docs/notebook-maintenance.md`). Check `.gitignore` when unsure.
 - Avoid editing the same notebook at the same time. Notebook conflicts are harder to resolve than ordinary text file conflicts.
 - Never use `git push --force` on a shared branch.
 
@@ -211,7 +211,7 @@ The graphical actions run the same Git operations as the terminal commands. When
 6. Use **Git > GitHub > Create Pull Request**, if available, or open the pull request in a browser.
 7. After merging, check out `main`, update the project, and delete the local finished branch from the branch widget.
 
-PyCharm may ask which files to include in a commit. Treat that list like `git status`: do not select generated data, artifacts, or unrelated changes.
+PyCharm may ask which files to include in a commit. Treat that list like `git status`: do not select unrelated changes, or artifacts and data from a partial run.
 
 ## Working Across Windows, macOS, and Linux
 
@@ -221,7 +221,7 @@ The Git workflow is shared across all three systems. Use the terminal built into
 - macOS and Linux commonly use paths like `/Users/name/Stock_Price_DL` or `/home/name/Stock_Price_DL`.
 - Windows users may use Git Bash for Unix like commands. PowerShell commands such as `Get-Location` are not Git commands and are not needed for this guide.
 - Do not commit virtual environments. Keep environment setup local to each computer.
-- Run notebooks in the same order documented in the root README. Keep large downloaded data and generated artifacts out of Git unless the team explicitly decides otherwise.
+- Run notebooks in the same order documented in the root README. The team decided to track `data/` and `artifacts/`; keep large raw downloads out of Git.
 
 ## Asking an Agent for Git Help
 

@@ -1,12 +1,19 @@
-# Python 3.9 (see README). Only TensorFlow is pinned exactly; the others are
-# ranges compatible with TensorFlow 2.10.1.
-tensorflow==2.10.1
-numpy>=1.21,<1.24
-pandas>=1.4,<2.1
-scikit-learn>=1.0,<1.7
-matplotlib>=3.5,<3.8
-joblib>=1.1
+# Shared team environment: Python 3.12.16.
+# These are the versions used for the official run of the notebooks.
+# Linux or WSL with an NVIDIA GPU: install requirements-linux-gpu.txt instead.
+tensorflow==2.16.2
+keras==3.15.1
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.6.1
+matplotlib==3.10.9
+# Diebold-Mariano test in notebook 04
+scipy==1.17.1
+joblib==1.6.0
+# TensorFlow 2.16 installs TensorBoard, which imports pkg_resources (removed from newer setuptools)
+setuptools<81
+# Running the notebook
+jupyter
 ipykernel
-ipython
-# Keeps notebook outputs and kernel metadata out of Git
+# Strips execution counts and kernel metadata from notebooks on commit (outputs are kept)
 nbstripout>=0.6
