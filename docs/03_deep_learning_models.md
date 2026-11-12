@@ -1,6 +1,6 @@
 # 03 · Deep learning models explained
 
-This document explains the building blocks used in `src/models.py` and `src/train.py`.
+This document explains the building blocks used in `src/models.py`, `src/train.py` and `src/tuning.py`.
 
 ---
 
@@ -167,6 +167,12 @@ $$
 | `EarlyStopping` | `patience=10`, `restore_best_weights=True` | Stops when validation loss has not improved for 10 epochs and rolls back to the best epoch |
 | `ReduceLROnPlateau` | `factor=0.5`, `patience=5` | Halves the learning rate when validation loss stalls, for finer steps near a minimum |
 | `ModelCheckpoint` | `save_best_only=True` | Writes the best model to `model.keras` during training |
+
+`training_callbacks()` in `src/train.py` builds these callbacks for both the main runs and the tuning trials.
+
+### Hyperparameter tuning
+
+`src/tuning.py` runs a KerasTuner random search (20 trials) over units or filters, dropout, learning rate and batch size (and kernel size for a CNN) for the selected model, scored by validation loss only. Notebook 06 then retrains the best combination with `train_model` (saved as `<run>_tuned`) and compares it with the original by validation RMSE in dollars.
 
 ### Reading learning curves
 

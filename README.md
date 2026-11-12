@@ -1,10 +1,10 @@
 # Next day stock price prediction with deep learning (Keras / TensorFlow)
 
-A project that predicts the **next trading day's closing price** of Apple (AAPL) with LSTM, GRU and 1D-CNN networks, each tested with closing price alone and with closing price plus **trading volume**. Every network predicts the next-day **log return**, which is converted back to a closing price and compared in dollars with simple baselines.
+A project that predicts the **next trading day's closing price** of Apple (AAPL) with LSTM, GRU and 1D-CNN networks, each tested with closing price alone and with closing price plus **trading volume**. Every network predicts the next-day **log return**, which is converted back to a closing price and compared in dollars with simple baselines. The selected model is then improved with hyperparameter tuning.
 
 The project follows the **CRISP-DM** framework from start to finish: business understanding, data understanding, data preparation, modeling, evaluation and deployment. Each phase has its own notebook, the reusable code lives in `src/`, and every setting is in `config.py`.
 
-> **Branch note.** This is the `review/a5155cd-log-return` branch. It starts from commit `a5155cd` (the six log-return models described in the original write-up) and fixes the errors found in that version, using the same environment and Git setup as `main`. `main` holds the other version of the project: six price-target models plus a tuning and log-return iteration.
+> **Branch note.** This is the `review/a5155cd-log-return` branch. It starts from commit `a5155cd` (the six log-return models described in the original write-up) and fixes the errors found in that version, using the same environment and Git setup as `main`. `main` holds the other version of the project: six price-target models plus a tuning and log-return iteration. This branch adds the same tuning step to the selected log-return model.
 
 ---
 
@@ -13,7 +13,7 @@ The project follows the **CRISP-DM** framework from start to finish: business un
 ```
 Stock_Price_DL/
 ├── README.md                       <- Project overview
-├── config.py                       <- ALL settings (dates, lookback, target, epochs, RETRAIN...)
+├── config.py                       <- ALL settings (dates, lookback, target, epochs, tuning trials, RETRAIN...)
 ├── requirements.txt                <- shared library versions
 ├── requirements-linux-gpu.txt      <- the same, plus CUDA libraries for Linux or WSL GPUs
 ├── data/
@@ -25,8 +25,9 @@ Stock_Price_DL/
 │   ├── preprocessing.py            <- split, scale, windows
 │   ├── models.py                   <- CNN, LSTM and GRU architectures
 │   ├── train.py                    <- training, saving and reloading runs
+│   ├── tuning.py                   <- KerasTuner search (notebook 06)
 │   ├── evaluate.py                 <- baselines, metrics and comparison tables
-│   ├── predict.py                  <- next-day prediction from a saved run
+│   ├── predict.py                  <- next-day prediction and historical replay
 │   ├── plotting.py                 <- shared chart style
 │   ├── notebook.py                 <- show_source helper for the notebooks
 │   └── extract_aapl.py             <- recreates the AAPL data from the original Kaggle file
@@ -35,10 +36,11 @@ Stock_Price_DL/
 │   ├── 02_data_preparation.ipynb
 │   ├── 03_modeling.ipynb
 │   ├── 04_evaluation.ipynb
-│   └── 05_deployment.ipynb
+│   ├── 05_deployment.ipynb
+│   └── 06_improvements.ipynb
 ├── docs/                           <- concept and team guides, and the project write-up
 ├── stock_eval312_*.yml / *.txt     <- record of Basma's original Mac environment
-└── artifacts/                      <- models, scalers, metadata, metrics, predictions, plots
+└── artifacts/                      <- models, scalers, metadata, metrics, predictions, plots, tuning trials
 ```
 
 The data, the artifacts and the notebook outputs are tracked in Git, so every result can be inspected without running anything.
@@ -82,13 +84,14 @@ Open the notebooks in order, choose the `stock_eval312` kernel, and run each one
 | `03_modeling` | Modeling | Trains the six configurations and selects one by validation loss |
 | `04_evaluation` | Evaluation | Test metrics in dollars, baselines, volume effect, Diebold-Mariano tests |
 | `05_deployment` | Deployment | Reloads the selected model, predicts the next day, replays the last 20 days |
+| `06_improvements` | Next iteration | KerasTuner tuning of the selected model, compared by validation RMSE |
 
 | Setting in `config.py` | Effect |
 |---|---|
-| `RETRAIN = True` (default) | Notebook 03 trains every model from scratch |
-| `RETRAIN = False` | It reloads the saved models from `artifacts/` |
+| `RETRAIN = True` (default) | Notebooks 03 and 06 train everything from scratch |
+| `RETRAIN = False` | They reload the saved models and tuning results from `artifacts/` |
 
-A full run takes about 3 minutes on a laptop CPU. The official results below come from a CPU run; GPU runs can differ slightly in the last decimals.
+A full run takes about 10 minutes on a laptop CPU, most of it in the tuning step of notebook 06. The official results below come from a CPU run; GPU runs can differ slightly in the last decimals.
 
 ---
 
@@ -117,7 +120,7 @@ Each teammate should work on a short lived branch and merge into `main` through 
 
 ## Results
 
-These numbers come from the official CPU run shown in notebooks 03 to 05. All evaluations use the same 632 held-out test days, from March 22, 2024, through September 29, 2026. Every network predicts the next-day log return; the predictions are converted to closing prices before scoring.
+These numbers come from the official CPU run shown in notebooks 03 to 06. All evaluations use the same 632 held-out test days, from March 22, 2024, through September 29, 2026. Every network predicts the next-day log return; the predictions are converted to closing prices before scoring.
 
 | Model | Test MAE (USD) | Test RMSE (USD) | Dir. acc. (%) |
 |---|---|---|---|
@@ -129,6 +132,7 @@ These numbers come from the official CPU run shown in notebooks 03 to 05. All ev
 | LSTM price + volume (selected by validation loss) | 2.96 | 4.24 | 44.8 |
 | LSTM price only | 3.05 | 4.32 | 44.6 |
 | GRU price only | 3.06 | 4.33 | 44.1 |
+| LSTM price + volume, tuned | 3.83 | 5.09 | 44.3 |
 | 5-day moving average baseline | 4.73 | 6.45 | 48.9 |
 
 ### Key findings
@@ -137,11 +141,12 @@ These numbers come from the official CPU run shown in notebooks 03 to 05. All ev
 - CNN with closing prices and trading volume had the lowest test RMSE among the networks ($4.1735).
 - LSTM with closing prices and trading volume was selected by validation loss, not test performance; it ranked fourth of six on the test set. The six validation losses differ only in the third decimal.
 - Adding trading volume lowered the test RMSE of all three architectures; the improvement is significant for LSTM and GRU (p < 0.001) but not for CNN (p = 0.12).
+- Hyperparameter tuning (20 KerasTuner trials) improved the selected model's validation RMSE by less than a tenth of a cent ($2.7048 to $2.7040), but its test RMSE rose from $4.24 to $5.09: the tuned model (no dropout, higher learning rate) amplified the bias below.
 - Every network is biased toward predicting a fall: the selected model predicts a rise on 5.9% of test days, while the price rose on 55.2% of them. The inputs are scaled price levels, and test prices lie far above the training range.
 
 ### Deployment decision
 
-The historical demonstration predicted a close of $328.00 for September 30, 2026, using data through September 29, 2026, when the last close was $329.40. The selected model's 20-day historical replay had an MAE of $3.97, compared with $3.74 for the naive forecast on the same days.
+The historical demonstration predicted a close of $328.00 for September 30, 2026, using data through September 29, 2026, when the last close was $329.40. The selected model's 20-day historical replay had an MAE of $3.97, compared with $3.74 for the naive forecast on the same days; the tuned version's replay MAE was $7.09.
 
 Production deployment is not recommended, because no model outperformed the simple forecasting baselines. This was a historical demonstration, not a current stock-price forecast.
 

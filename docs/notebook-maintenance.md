@@ -40,16 +40,16 @@ nbstripout --extra-keys "metadata.kernelspec metadata.language_info" notebooks/*
 
 ## Every project notebook keeps its outputs
 
-Notebooks `01`-`05` all have `"keep_output": true` in their notebook-level metadata, and `nbstripout` leaves the outputs of a notebook with that setting in place. This works in every clone, with no extra setup. A new notebook needs the same setting, or its outputs will be stripped on commit.
+Notebooks `01`-`06` all have `"keep_output": true` in their notebook-level metadata, and `nbstripout` leaves the outputs of a notebook with that setting in place. This works in every clone, with no extra setup. A new notebook needs the same setting, or its outputs will be stripped on commit.
 
 - `nbstripout` still removes execution counts and kernel metadata from the committed copy, so the file on your disk keeps more than Git does. Submit the file from disk if you want the `In [n]` numbers to show.
 - The outputs are the official results, and the README and the notebooks' text quote them. Before committing a new run, check that the numbers in the text still match.
 
 ## Data and artifacts are tracked
 
-`data/` and `artifacts/` are no longer ignored. The trained models, scalers, metadata, training histories, metrics, predictions and plots are part of the deliverable, so the results can be checked without retraining.
+`data/` and `artifacts/` are no longer ignored. The trained models, scalers, metadata, training histories, metrics, predictions, plots and KerasTuner trials are part of the deliverable, so the results can be checked without retraining.
 
-- Commit artifacts only from a complete run of notebooks `01`→`05`, in the same commit or pull request as the notebooks whose outputs they match.
+- Commit artifacts only from a complete run of notebooks `01`→`06`, in the same commit or pull request as the notebooks whose outputs they match.
 - Every rerun rewrites the model files, so Git will show them as changed even when the numbers are the same. If you ran notebooks only to try something, restore the committed versions with `git restore artifacts data` before committing.
 - `.gitattributes` marks `*.keras`, `*.h5`, `*.joblib`, `*.pkl` and `*.png` files as binary, so Git never changes their line endings.
 
