@@ -22,6 +22,10 @@ Preprocessing for time series:
    last LOOKBACK days of features and pair it with the target for day t+1:
 
       X[i] = features[t-LOOKBACK+1 ... t]     y[i] = target[t]  (= closing price of day t+1)
+
+4. TF.DATA PIPELINES
+   make_dataset() batches each split, caches it and prefetches the next batch.
+   It never shuffles, so training sees the windows in chronological order.
 """
 
 from dataclasses import dataclass, field
@@ -32,9 +36,11 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
+import tensorflow as tf
+
 import config
 from src.data_loader import load_stock_data
-from src.features import build_modeling_frame, get_feature_columns
+from src.features import build_modeling_frame
 
 
 @dataclass
@@ -65,6 +71,7 @@ class PreparedData:
     lookback: int
     feature_scaler: StandardScaler
     target_scaler: StandardScaler
+    target_column: str = "target_price"
     splits: Dict[str, SplitWindows] = field(default_factory=dict)
     boundaries: Dict[str, Tuple[int, int]] = field(default_factory=dict)  # row ranges per split
 
@@ -113,17 +120,20 @@ def split_frame(
 
 
 def fit_scalers(
-    frame: pd.DataFrame, feature_columns: list, train_end: int
+    frame: pd.DataFrame, feature_columns: list, train_end: int, target_mode: str = config.TARGET_MODE
 ) -> Tuple[StandardScaler, StandardScaler]:
     """
     Fit one scaler for the inputs and one for the target, using TRAINING rows only.
 
     Two separate scalers are used because the target must be converted back
     to its original units later (inverse_transform), independent of the inputs.
+
+    train_end - 1: the last training row's target is the first validation close,
+    so that row is left out of the fit.
     """
-    train_rows = frame.iloc[:train_end - 1]
-    feature_scaler = StandardScaler().fit(train_rows[feature_columns].to_numpy())
-    target_scaler = StandardScaler().fit(train_rows[["target"]].to_numpy())
+    target_values = frame[[config.TARGET_COLUMNS[target_mode]]].to_numpy()
+    feature_scaler = StandardScaler().fit(frame[feature_columns].to_numpy()[: train_end - 1])
+    target_scaler = StandardScaler().fit(target_values[: train_end - 1])
     return feature_scaler, target_scaler
 
 
@@ -170,13 +180,14 @@ def prepare_data(
     """
     n_rows = len(frame)
     train_end, val_end = chronological_split_indices(n_rows, train_ratio, val_ratio)
+    target_column = config.TARGET_COLUMNS[target_mode]
 
     if feature_scaler is None or target_scaler is None:
-        feature_scaler, target_scaler = fit_scalers(frame, feature_columns, train_end)
+        feature_scaler, target_scaler = fit_scalers(frame, feature_columns, train_end, target_mode)
 
     # Transform ALL rows with the train-fitted scalers.
     features_scaled = feature_scaler.transform(frame[feature_columns].to_numpy())
-    target_scaled = target_scaler.transform(frame[["target"]].to_numpy()).ravel()
+    target_scaled = target_scaler.transform(frame[[target_column]].to_numpy()).ravel()
 
     boundaries = {"train": (0, train_end), "val": (train_end, val_end), "test": (val_end, n_rows)}
     close = frame["Close"].to_numpy()
@@ -185,7 +196,7 @@ def prepare_data(
     splits = {}
     for name, (start, end) in boundaries.items():
         X, t_idx = make_windows(features_scaled, lookback, start, end)
-        if name != "test":
+        if name != "test":  # this sample's target falls in the next split
             X = X[:-1]
             t_idx = t_idx[:-1]
         if len(t_idx) == 0:
@@ -208,30 +219,44 @@ def prepare_data(
         lookback=lookback,
         feature_scaler=feature_scaler,
         target_scaler=target_scaler,
+        target_column=target_column,
         splits=splits,
         boundaries=boundaries,
     )
 
 
+def make_dataset(split: SplitWindows, batch_size: int = config.BATCH_SIZE) -> tf.data.Dataset:
+    """tf.data pipeline for one split. It keeps chronological order: there is no shuffle step."""
+    return (tf.data.Dataset.from_tensor_slices((split.X, split.y))
+            .batch(batch_size)
+            .cache()
+            .prefetch(tf.data.AUTOTUNE))
+
+
 def load_prepared_data(
-    use_volume: bool = config.USE_VOLUME,
+    feature_set: str = "close",
     target_mode: str = config.TARGET_MODE,
     lookback: int = config.LOOKBACK,
     start_date: Optional[str] = config.START_DATE,
     data_path: Union[str, Path] = config.DATA_PATH,
     feature_scaler: Optional[StandardScaler] = None,
     target_scaler: Optional[StandardScaler] = None,
+    feature_columns: Optional[list] = None,
     verbose: bool = True,
 ) -> PreparedData:
     """
-    Convenience pipeline: load CSV -> engineer features/target -> split, scale, window.
+    Convenience pipeline: load CSV -> engineer features/targets -> split, scale, window.
+
+    feature_set     : "close" or "close_volume".
+    target_mode     : "price" uses the price feature sets; "log_return" uses the log feature sets.
+    feature_columns : explicit input columns (for example from a saved run's metadata);
+                      overrides feature_set.
     """
     df = load_stock_data(data_path, start_date=start_date, verbose=verbose)
     frame = build_modeling_frame(df)
-    if target_mode == "log_return":
-        frame["target"] = np.log(frame["next_close"] / frame["Close"])
-        frame = frame.dropna(subset=["target"])
-    feature_columns = get_feature_columns(use_volume)
+    if feature_columns is None:
+        feature_sets = config.LOG_FEATURE_SETS if target_mode == "log_return" else config.FEATURE_SETS
+        feature_columns = feature_sets[feature_set]
     return prepare_data(
         frame,
         feature_columns,

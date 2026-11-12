@@ -1,5 +1,5 @@
-/artifacts/*
-/data/*
+# data/ and artifacts/ are tracked on purpose: the dataset, derived data, trained
+# models, scalers, logs and plots are part of the deliverable.
 **/__pycache__/
 *.pyc
 **/.vscode/

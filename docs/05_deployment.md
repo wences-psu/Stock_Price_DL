@@ -10,13 +10,15 @@ Each training run writes a self-contained folder in `artifacts/`:
 
 ```
 artifacts/lstm_close_volume/
-├── model.h5                  # network architecture + trained weights
+├── model.keras               # network architecture + trained weights
 ├── feature_scaler.joblib     # StandardScaler fitted on TRAINING features
 ├── target_scaler.joblib      # StandardScaler fitted on TRAINING targets
-├── metadata.json             # features, lookback, target mode, dates, settings
+├── metadata.json             # features, lookback, target mode, hyperparameters, settings
 ├── history.json              # per-epoch loss (learning curves)
-└── predictions_test.csv      # test-set predictions (written by evaluation)
+└── predictions_test.csv      # test-set predictions (written by notebook 04)
 ```
+
+The rest of `artifacts/` holds the comparison table (`metrics.csv`), the improvement tables (`improvements_*.csv`), the saved figures (`plots/`), the TensorBoard logs (`logs/`) and the KerasTuner trials (`tuning/`). All of it is tracked in Git, so the results can be inspected without retraining.
 
 **Note**: a model alone cannot make correct predictions. It expects inputs that were:
 1. built with the **same features** (`feature_columns` in the metadata),
@@ -25,7 +27,7 @@ artifacts/lstm_close_volume/
 
 The model's output must be converted back using the same target mode and target scaler. Saving all of these together prevents a production bug where inference preprocessing differs slightly from training.
 
-> **Format note:** TensorFlow 2.10 saves `.h5` (HDF5) or SavedModel folders. The newer `.keras` format needs TF ≥ 2.12.
+> **Format note:** the models are saved in the `.keras` format, which needs TensorFlow 2.12 or newer.
 
 ---
 
@@ -33,13 +35,13 @@ The model's output must be converted back using the same target mode and target 
 
 ```mermaid
 flowchart LR
-    new[(New OHLCV data)] --> load[load_stock_data<br/>validate]
+    new[(New Close and Volume data)] --> load[load_stock_data<br/>validate]
     load --> feat[build_inference_frame<br/>same features]
     feat --> win[last LOOKBACK rows]
     win --> scale[feature_scaler.transform]
     scale --> model[model.predict]
     model --> inv[target_scaler.inverse_transform]
-    inv --> price["price = last_close × exp(return)"]
+    inv --> price["price in dollars<br/>to_price"]
 ```
 
 `predict_next_day()` is the **single source of truth**. The notebook calls it, so what was tested is what runs.
@@ -51,7 +53,7 @@ flowchart LR
 ### Python
 ```python
 from src.predict import predict_next_day
-result = predict_next_day("artifacts/lstm_close")
+result = predict_next_day("artifacts/gru_close_volume")
 print(result["predicted_close"])
 ```
 
@@ -67,7 +69,7 @@ from fastapi import FastAPI
 from src.predict import load_artifacts, predict_next_day
 
 app = FastAPI(title="Next-day close API")
-ARTIFACTS = load_artifacts("artifacts/lstm_close")   # load once at startup
+ARTIFACTS = load_artifacts("artifacts/gru_close_volume")   # load once at startup
 
 @app.get("/health")
 def health():
@@ -81,13 +83,13 @@ Run with `uvicorn api:app --port 8000`, then open `http://localhost:8000/docs`.
 
 ### Containerizing with Docker
 ```dockerfile
-FROM python:3.9-slim
+FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt fastapi uvicorn
 COPY config.py ./
 COPY src/ src/
-COPY artifacts/lstm_close/ artifacts/lstm_close/
+COPY artifacts/gru_close_volume/ artifacts/gru_close_volume/
 COPY data/ data/
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
 ```

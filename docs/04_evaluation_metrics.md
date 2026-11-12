@@ -6,11 +6,13 @@ This document explains `src/evaluate.py` and `notebooks/04_evaluation.ipynb`.
 
 ## 1. Evaluation units
 
-The network is trained on **scaled log returns**, but bussines deal in **dollars**. Every prediction is therefore converted back before computing metrics:
+The network is trained on **scaled closing prices**, but business decisions are made in **dollars**. Every prediction is therefore converted back before computing metrics:
 
 ```
-model output (scaled) ──inverse_transform──▶ log return ──C_t · exp(r)──▶ price in $
+model output (scaled) ──inverse_transform──▶ price in $
 ```
+
+In the log-return experiment (notebook 06), the converted value is a log return, and the price is rebuilt as $C_t \cdot \exp(r)$.
 
 All metrics are computed on the **test set**, a period the model never saw and that played no part in choosing settings.
 
@@ -61,7 +63,7 @@ With about 630 test days, small differences between models can easily come from 
 | positive | < 0.05 | Model A is significantly worse than B |
 | any | ≥ 0.05 | No evidence of a difference: treat them as equivalent |
 
-The notebook uses the simple 1-step version. For multi-step forecasts, the variance must be corrected for autocorrelation (Newey-West) [3], and the Harvey-Leybourne-Newbold (1997) [2] correction improves small sample behavior.
+Notebook 04 uses the simple 1-step version, both against the baselines and to compare each architecture with and without volume. For multi-step forecasts, the variance must be corrected for autocorrelation (Newey-West) [3], and the Harvey-Leybourne-Newbold (1997) [2] correction improves small sample behavior.
 
 ---
 

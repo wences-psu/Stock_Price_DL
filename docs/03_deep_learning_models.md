@@ -1,6 +1,6 @@
 # 03 · Deep learning models explained
 
-This document explains the building blocks used in `src/models.py` and `src/train.py`.
+This document explains the building blocks used in `src/models.py`, `src/train.py` and `src/tuning.py`.
 
 ---
 
@@ -166,7 +166,17 @@ $$
 |---|---|---|
 | `EarlyStopping` | `patience=10`, `restore_best_weights=True` | Stops when validation loss has not improved for 10 epochs and rolls back to the best epoch |
 | `ReduceLROnPlateau` | `factor=0.5`, `patience=5` | Halves the learning rate when validation loss stalls, for finer steps near a minimum |
-| `ModelCheckpoint` | `save_best_only=True` | Writes the best model to `model.keras` during training |
+| `TensorBoard` | `log_dir=artifacts/logs/<run>` | Writes the training curves; view them with `tensorboard --logdir artifacts/logs` |
+
+After training, `train_run` saves the restored best model to `model.keras`.
+
+### Input pipeline
+
+`make_dataset` in `src/preprocessing.py` feeds the windows through `tf.data`: `batch → cache → prefetch`. There is no shuffle step and `fit` uses `shuffle=False`, so the windows stay in chronological order.
+
+### Hyperparameter tuning
+
+`src/tuning.py` runs a KerasTuner random search (20 trials) over units or filters, dropout, learning rate and batch size for the selected model, scored by validation loss only. Notebook 06 then retrains the best combination with `train_run`.
 
 ### Reading learning curves
 
@@ -180,7 +190,7 @@ loss                                   loss
    good fit                               overfitting
 ```
 
-With noisy financial targets, if the best validation epoch occurs early it means the network quickly learns to "predict roughly the average return" and has little else to learn.
+With noisy financial targets, if the best validation epoch occurs early it means the network quickly learns what little signal there is, and more epochs mostly fit noise.
 
 ---
 
@@ -188,9 +198,9 @@ With noisy financial targets, if the best validation epoch occurs early it means
 
 | Object | Shape (price only) | Shape (with volume) |
 |---|---|---|
-| `X_train` | (2876, 60, 1) | (2876, 60, 3) |
-| `y_train` | (2876,) | (2876,) |
-| Model input | (None, 60, 1) | (None, 60, 3) |
+| `X_train` | (2885, 60, 1) | (2885, 60, 2) |
+| `y_train` | (2885,) | (2885,) |
+| Model input | (None, 60, 1) | (None, 60, 2) |
 | Model output | (None, 1) | (None, 1) |
 
 `None` is the batch dimension, which can be any size.
@@ -199,4 +209,4 @@ With noisy financial targets, if the best validation epoch occurs early it means
 
 ## 11. Reproducibility
 
-`set_seeds()` fixes the Python, NumPy and TensorFlow random seeds, so weight initialization, dropout masks and shuffling are repeatable. Results can still differ slightly between CPU and GPU or between library versions. With a weak signal, those small differences can change the ranking of models, which is why notebook 04 uses a statistical test and we recommend averaging several seeds.
+Before every run, `train_run` calls `keras.utils.set_random_seed(SEED)`, which fixes the Python, NumPy and TensorFlow random seeds, and then clears the Keras session. Each run is therefore repeatable on its own, whatever ran before it, which is why the phase notebooks and the single notebook give the same models on the same CPU setup. Results can still differ slightly between CPU and GPU or between library versions. With a weak signal, those small differences can change the ranking of models, which is why notebook 04 uses a statistical test and we recommend averaging several seeds.

@@ -1,6 +1,8 @@
 """
 config.py - Central configuration for the whole project.
 
+The values match the settings cell of notebooks/Team7_Deep_Learning_Final_Project.ipynb,
+so the phase notebooks (01-06) and the single notebook produce the same results.
 """
 
 from pathlib import Path
@@ -13,10 +15,19 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 DATA_DIR = PROJECT_ROOT / "data"                             # data directory
 DATA_PATH = DATA_DIR / "AAPL_only.csv"                       # raw input data
 ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"                   # trained models, scalers, metadata
-PLOTS_DIR = ARTIFACTS_DIR / "plots"                          # figures saved by the evaluation step
+LOG_DIR = ARTIFACTS_DIR / "logs"                             # TensorBoard logs
+TUNING_DIR = ARTIFACTS_DIR / "tuning"                        # KerasTuner trials
+PLOTS_DIR = ARTIFACTS_DIR / "plots"                          # figures saved by the notebooks
 METRICS_PATH = ARTIFACTS_DIR / "metrics.csv"                 # model comparison table
 
 TICKER = "AAPL"  # only used for titles/labels
+
+# ---------------------------------------------------------------------------
+# Running the notebooks
+# ---------------------------------------------------------------------------
+# RETRAIN = True  -> notebooks 03 and 06 train every model from scratch.
+# RETRAIN = False -> they reload the models saved in artifacts/ by an earlier complete run.
+RETRAIN = True
 
 # ---------------------------------------------------------------------------
 # Data selection
@@ -41,17 +52,22 @@ TEST_RATIO = 0.15
 # ---------------------------------------------------------------------------
 # Features and target
 # ---------------------------------------------------------------------------
-# USE_VOLUME = False -> the model only sees price information.
-# USE_VOLUME = True  -> the model also sees trading-volume features.
-USE_VOLUME = False
+# Input columns of each feature set. The run name is "<model>_<feature set>",
+# for example "gru_close_volume".
+FEATURE_SETS = {"close": ["Close"], "close_volume": ["Close", "Volume"]}
+
+# Inputs used by the log-return experiment (notebook 06).
+LOG_FEATURE_SETS = {"close": ["log_return"], "close_volume": ["log_return", "log_volume", "volume_change"]}
 
 # What the network learns to predict:
+#   "price":      tomorrow's closing price (scaled). Used by the six main models.
 #   "log_return": tomorrow's log return, ln(Close_{t+1} / Close_t). The price is
-#                 reconstructed afterwards as Close_t * exp(predicted_return).
-#                 (Recommended - see docs/02_time_series_concepts.md.)
-#   "price":      tomorrow's closing price directly (scaled).
-#                 This is the target used in the Team 7 project.
+#                 rebuilt afterwards as Close_t * exp(predicted_return). Used in notebook 06.
+TARGET_COLUMNS = {"price": "target_price", "log_return": "target_log_return"}
 TARGET_MODE = "price"
+
+# Kept for older code: USE_VOLUME=True selects the "close_volume" feature set.
+USE_VOLUME = False
 
 # Window size for the moving average baseline.
 MA_WINDOW = 5
@@ -59,15 +75,20 @@ MA_WINDOW = 5
 # ---------------------------------------------------------------------------
 # Modeling and training
 # ---------------------------------------------------------------------------
-MODEL_NAME = "lstm"                  # default architecture: "lstm", "gru" or "cnn"
-MODEL_NAMES = ("lstm", "gru", "cnn")  # all architectures used in the project
+MODEL_NAMES = ("cnn", "lstm", "gru")  # all architectures used in the project
 
 EPOCHS = 100          # maximum passes over the training data (early stopping usually ends sooner)
-BATCH_SIZE = 32       # number of windows used for each weight update
-LEARNING_RATE = 1e-3  # step size for the Adam optimizer
-DROPOUT = 0.2         # fraction of units randomly switched off during training (regularization)
 PATIENCE = 10         # epochs without validation improvement before early stopping
+TUNER_TRIALS = 20     # hyperparameter combinations tried in notebook 06
 
-# Random seed: makes weight initialization and shuffling repeatable.
-# (GPU kernels can still add tiny non-deterministic differences.)
+# Settings shared by all six configurations.
+BASE_HPARAMS = {"units": 64, "kernel_size": 5, "dropout": 0.2, "learning_rate": 1e-3, "batch_size": 32}
+
+# Individual names, kept for readability in the notebooks.
+BATCH_SIZE = BASE_HPARAMS["batch_size"]        # number of windows used for each weight update
+LEARNING_RATE = BASE_HPARAMS["learning_rate"]  # step size for the Adam optimizer
+DROPOUT = BASE_HPARAMS["dropout"]              # fraction of units switched off during training
+
+# Random seed: makes weight initialization and dropout repeatable.
+# (GPU kernels can still add small non-deterministic differences.)
 SEED = 42

@@ -26,7 +26,7 @@ git status
 git diff --staged
 ```
 
-Confirm that only intended files are staged and that there are no secrets, data files, artifacts, environments, or unrelated edits. After every operation, run `git status` and summarize the result.
+Confirm that only intended files are staged and that there are no secrets, environments, or unrelated edits. `data/` and `artifacts/` are tracked on purpose, but only commit them from a complete, verified run. After every operation, run `git status` and summarize the result.
 
 ## Common Requests
 
@@ -66,7 +66,7 @@ git diff --staged
 git commit -m "<imperative message>"
 ```
 
-Do not use `git add .` without reviewing the resulting status first. Do not commit if the staged content contains secrets, generated data, artifacts, or unrelated work.
+Do not use `git add .` without reviewing the resulting status first. Do not commit if the staged content contains secrets, environments, unrelated work, or artifacts from a partial run.
 
 ### Push a branch
 

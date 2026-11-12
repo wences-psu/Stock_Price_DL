@@ -43,7 +43,7 @@ Why log returns rather than simple returns $(C_t - C_{t-1}) / C_{t-1}$?
 
 $$\hat C_{t+1} = C_t \cdot e^{\hat r_{t+1}}$$
 
-This is done in `src/evaluate.py` (`target_to_price`) and in `src/predict.py`.
+This is done in `src/evaluate.py` (`to_price`) and in `src/predict.py`. The six main models predict the price directly; notebook 06 tests the log-return target.
 
 ---
 
@@ -72,7 +72,7 @@ If past prices reliably predicted future prices, traders would exploit the patte
 | **Random split** | Shuffling rows, so the model trains on 2025 and tests on 2020 | Chronological split (`chronological_split_indices`) |
 | **Scaling** | Fitting the scaler on all data, so the training data "knows" the test mean | Scalers fitted on the training rows only (`fit_scalers`) |
 | **Feature** | A centered rolling mean (it uses future days), or using $C_{t+1}$ in a feature | Features use only `shift(+k)` and past data (`add_features`) |
-| **Target misalignment** | An off by one error, so the model "predicts" today | `shift(-1)` target plus asserts in notebook 02 |
+| **Target misalignment** | An off by one error, so the model "predicts" today | `shift(-1)` target plus asserts and leakage checks in notebook 02 |
 | **Test set reuse** | Tuning settings until the test score looks good | Use validation for decisions; touch test once at the end |
 
 ---

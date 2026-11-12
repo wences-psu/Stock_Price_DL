@@ -8,19 +8,16 @@ Key deployment consideration: the model alone is not enough. You must apply
 exactly the same preprocessing as in training with same features, same
 lookback, same fitted scalers. Training saves them next to
 the model (see src/train.py).
+
+The math matches the deployment section of the single notebook.
 """
 
-import argparse
-import json
 import sys
 from pathlib import Path
 from typing import Optional, Union
 
-import joblib
 import numpy as np
 import pandas as pd
-
-from tensorflow import keras
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -28,42 +25,27 @@ if str(PROJECT_ROOT) not in sys.path:
 
 import config
 from src.data_loader import load_stock_data
+from src.evaluate import to_price
 from src.features import build_inference_frame
-
-
-def find_model_file(artifact_dir):
-    artifact_dir = Path(artifact_dir)
-
-    for file in artifact_dir.iterdir():
-        if file.suffix in {".keras", ".h5"}:
-            return file
-
-    return None
+from src.train import MODEL_FILENAME, load_run
 
 
 def load_artifacts(artifact_dir: Union[str, Path]) -> dict:
     """
     Load a trained run: Keras model, both scalers and metadata.
 
-    compile=False: we only need the model for predictions, so the optimizer
-    and loss do not need to be restored (faster, and avoids version issues).
+    The model is loaded with compile=False: we only need it for predictions, so the
+    optimizer and loss do not need to be restored (faster, and avoids version issues).
     """
-
     artifact_dir = Path(artifact_dir)
-    model_file = find_model_file(artifact_dir)
-    if model_file is None:
-        raise FileNotFoundError(
-            f"No model.keras or model.h5 in {artifact_dir}. Train a model first (python -m src.train)."
-        )
-
-    with open(artifact_dir / "metadata.json", "r", encoding="utf-8") as f:
-        metadata = json.load(f)
-
+    if not (artifact_dir / MODEL_FILENAME).exists():
+        raise FileNotFoundError(f"No {MODEL_FILENAME} in {artifact_dir}. Train the model first (notebook 03).")
+    saved = load_run(artifact_dir.name, artifact_dir.parent)
     return {
-        "model": keras.models.load_model(model_file, compile=False),
-        "feature_scaler": joblib.load(artifact_dir / "feature_scaler.joblib"),
-        "target_scaler": joblib.load(artifact_dir / "target_scaler.joblib"),
-        "metadata": metadata,
+        "model": saved.model,
+        "feature_scaler": saved.feature_scaler,
+        "target_scaler": saved.target_scaler,
+        "metadata": saved.metadata,
         "artifact_dir": artifact_dir,
     }
 
@@ -73,9 +55,7 @@ def list_artifact_dirs(artifacts_dir: Union[str, Path] = config.ARTIFACTS_DIR) -
     artifacts_dir = Path(artifacts_dir)
     if not artifacts_dir.exists():
         return []
-    return sorted(
-        p for p in artifacts_dir.iterdir() if p.is_dir() and find_model_file(p) is not None
-    )
+    return sorted(p for p in artifacts_dir.iterdir() if p.is_dir() and (p / MODEL_FILENAME).exists())
 
 
 def predict_next_day(
@@ -88,7 +68,7 @@ def predict_next_day(
     Parameters
     ----------
     artifacts : artifact folder path, or the dict returned by load_artifacts().
-    df        : clean OHLCV DataFrame (from load_stock_data). Defaults to config.DATA_PATH.
+    df        : clean Close/Volume DataFrame (from load_stock_data). Defaults to config.DATA_PATH.
 
     Returns
     -------
@@ -113,27 +93,16 @@ def predict_next_day(
 
     # Take the most recent window and scale it with the TRAINING scaler.
     window = frame[feature_columns].to_numpy()[-lookback:]
-    window_scaled = artifacts["feature_scaler"].transform(window)
-
     # Add the batch dimension: (lookback, n_features) -> (1, lookback, n_features).
-    x = window_scaled[np.newaxis, ...].astype("float32")
+    x = artifacts["feature_scaler"].transform(window)[np.newaxis, ...].astype("float32")
 
-    # Predict (scaled) and convert back to original units.
-    pred_scaled = artifacts["model"].predict(x, verbose=0)
-    pred = float(artifacts["target_scaler"].inverse_transform(pred_scaled.reshape(-1, 1))[0, 0])
-
-    # Rebuild the price.
+    # Predict (scaled) and convert back to original units, then to a price.
+    pred_scaled = artifacts["model"].predict(x, verbose=0).reshape(-1, 1)
+    pred_target = float(artifacts["target_scaler"].inverse_transform(pred_scaled)[0, 0])
     last_close = float(frame["Close"].iloc[-1])
-    if target_mode == "log_return":
-        predicted_return = pred
-        predicted_close = last_close * float(np.exp(pred))
-    else:
-        predicted_close = pred
-        predicted_return = (
-            float(np.log(pred / last_close))
-            if pred > 0 and last_close > 0
-            else float("nan")
-        )
+    predicted_close = float(to_price(pred_target, last_close, target_mode))
+    predicted_return = float(np.log(predicted_close / last_close)) if predicted_close > 0 else float("nan")
+
     last_date = frame.index[-1]
     # Next business day. Note: this ignores market holidays; use an exchange
     # calendar (e.g. pandas_market_calendars) for an exact date.
@@ -149,3 +118,15 @@ def predict_next_day(
         "predicted_change_pct": (predicted_close / last_close - 1) * 100,
     }
 
+
+def simulate_recent(artifacts: Union[str, Path, dict], df: pd.DataFrame, days: int = 20) -> pd.DataFrame:
+    """Replay the last `days` trading days, using only the data known on each day."""
+    if not isinstance(artifacts, dict):
+        artifacts = load_artifacts(artifacts)
+    rows = []
+    for as_of in df.index[-(days + 1):-1]:
+        p = predict_next_day(artifacts, df.loc[:as_of])
+        actual_next = df["Close"].iloc[df.index.get_loc(as_of) + 1]
+        rows.append({"as of": as_of.date(), "last close": p["last_close"], "predicted next": p["predicted_close"],
+                     "actual next": actual_next, "error ($)": p["predicted_close"] - actual_next})
+    return pd.DataFrame(rows).set_index("as of")

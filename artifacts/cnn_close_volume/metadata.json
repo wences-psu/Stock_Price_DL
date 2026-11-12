@@ -1,0 +1,24 @@
+{
+  "run_name": "cnn_close_volume",
+  "model_name": "cnn",
+  "target_mode": "price",
+  "feature_columns": [
+    "Close",
+    "Volume"
+  ],
+  "lookback": 60,
+  "hparams": {
+    "units": 64,
+    "kernel_size": 5,
+    "dropout": 0.2,
+    "learning_rate": 0.001,
+    "batch_size": 32
+  },
+  "epochs_run": 19,
+  "best_epoch": 9,
+  "best_val_loss": 0.0521254688501358,
+  "n_parameters": 769,
+  "train_seconds": 4.9,
+  "trained_at": "2026-11-11T20:48:52",
+  "tensorflow_version": "2.16.2"
+}

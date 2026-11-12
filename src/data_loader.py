@@ -1,7 +1,7 @@
 """
-data_loader.py - 
+data_loader.py - CRISP-DM phase 2: Data Understanding.
 
-Handles the reading, cleaning, and validation of daily OHLCV stock data.
+Handles the reading, cleaning, and validation of daily Close and Volume stock data.
 
 It is based on the CRISP-DM phase 2: Data Understanding findings.
 
@@ -15,9 +15,8 @@ Responsibilities
 """
 
 from pathlib import Path
-from typing import IO, List, Optional, Tuple, Union
+from typing import IO, List, Optional, Union
 
-import numpy as np
 import pandas as pd
 
 import config
@@ -71,7 +70,7 @@ def load_stock_data(
     verbose: bool = True,
 ) -> pd.DataFrame:
     """
-    Load, clean and validate daily OHLCV stock data.
+    Load, clean and validate daily Close and Volume stock data.
 
     Parameters
     ----------
@@ -86,12 +85,7 @@ def load_stock_data(
     DataFrame indexed by Date with columns: Close, Volume.
     sorted oldest -> newest.
     """
-    df = pd.read_csv(
-    source,
-    header=[0, 1],
-    index_col=0,
-    parse_dates=True
-)
+    df = pd.read_csv(source, header=[0, 1], index_col=0, parse_dates=True)
 
     if ticker is not None:
         if isinstance(df.columns, pd.MultiIndex):
@@ -102,7 +96,9 @@ def load_stock_data(
             raise ValueError("Ticker filtering requested but the data has no MultiIndex.")
 
     # sort chronologically.
-    df = df.sort_index()
+    df = df.sort_index().copy()
+    df.index.name = "Date"
+    df.columns.name = None
 
     # Volume as float so later math (log, diff) behaves uniformly.
     df["Volume"] = df["Volume"].astype(float)

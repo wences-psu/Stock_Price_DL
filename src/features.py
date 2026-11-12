@@ -1,10 +1,10 @@
-""""
+"""
 features.py - CRISP-DM phase 3: Data Preparation.
 
 Responsibilities
 ----------------
 1. Prepare historical closing prices and trading volume.
-2. Create the next-day closing-price prediction target.
+2. Create the next-day prediction targets (closing price and log return).
 3. Support six deep-learning configurations:
    LSTM, GRU, and 1D-CNN, each with two feature sets.
 
@@ -14,6 +14,7 @@ the next trading day's closing price.
 
 import numpy as np
 import pandas as pd
+
 import config
 
 # Price only features.
@@ -26,11 +27,9 @@ VOLUME_FEATURES = ["Volume"]
 ENGINEERED_FEATURES = ["log_return", "log_volume", "volume_change"]
 
 
-def add_features(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
+def add_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Add engineered feature columns.
-
-    ticker: used for selecting the MultiIndex column.
 
     Columns added
     -------------
@@ -39,33 +38,15 @@ def add_features(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
     volume_change : log_volume_t - log_volume_{t-1}
     """
     out = df.copy()
-    if isinstance(df.columns, pd.MultiIndex):
-        out["log_return", ticker] = np.log(out["Close", ticker] / out["Close", ticker].shift(1))
-        out["log_volume", ticker] = np.log1p(out["Volume", ticker])
-        out["volume_change", ticker] = out["log_volume", ticker].diff()
-    else:
-        out["log_return"] = np.log(out["Close"] / out["Close"].shift(1))
-        out["log_volume"] = np.log1p(out["Volume"])
-        out["volume_change"] = out["log_volume"].diff()
+    out["log_return"] = np.log(out["Close"] / out["Close"].shift(1))
+    out["log_volume"] = np.log1p(out["Volume"])
+    out["volume_change"] = out["log_volume"].diff()
     return out
 
 
-def get_feature_columns(use_volume: bool) -> list:
+def add_target(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Return the list of input columns.
-
-    use_volume=False -> ["Close"]                                  (price only)
-    use_volume=True  -> ["Close", "Volume"]   (price + volume)
-    """
-    columns = PRICE_FEATURES.copy()
-    if use_volume:
-        columns += VOLUME_FEATURES
-    return columns
-
-
-def add_target(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
-    """
-    Add the prediction target for each row t, which describes day t+1.
+    Add the prediction targets for each row t, which describe day t+1.
 
     shift(-1) moves every value one row UP, so row t receives tomorrow's value.
     The last row gets NaN because its tomorrow is not in the data yet;
@@ -73,37 +54,48 @@ def add_target(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
 
     Columns added
     -------------
-    target      : what the network learns (next-day closing price).
-    next_close  : tomorrow's actual close (used to evaluate in dollars).
-    target_date : tomorrow's date (used for plots).
+    next_close        : tomorrow's actual close (used to evaluate in dollars).
+    target_date       : tomorrow's date (used for plots).
+    target_price      : target of the six main models (tomorrow's close).
+    target_log_return : target of the log-return experiment, ln(Close_{t+1} / Close_t).
     """
     out = df.copy()
-    if isinstance(df.columns, pd.MultiIndex):
-        out["next_close", ticker] = out["Close", ticker].shift(-1)
-        out["target_date"] = out.index.to_series().shift(-1)
-        out["target", ticker] = out["Close", ticker].shift(-1)
-    else:
-        out["next_close"] = out["Close"].shift(-1)
-        out["target_date"] = out.index.to_series().shift(-1)
-        out["target"] = out["Close"].shift(-1)
+    out["next_close"] = out["Close"].shift(-1)
+    out["target_date"] = out.index.to_series().shift(-1)
+    out["target_price"] = out["next_close"]
+    out["target_log_return"] = np.log(out["next_close"] / out["Close"])
     return out
 
 
-def build_modeling_frame(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
+def add_features_and_target(df: pd.DataFrame) -> pd.DataFrame:
+    """Engineered features plus both targets (same function as in the single notebook)."""
+    return add_target(add_features(df))
+
+
+def get_feature_columns(use_volume: bool = config.USE_VOLUME) -> list:
+    """
+    Return the list of input columns.
+
+    use_volume=False -> ["Close"]            (price only)
+    use_volume=True  -> ["Close", "Volume"]  (price + volume)
+    """
+    return list(config.FEATURE_SETS["close_volume" if use_volume else "close"])
+
+
+def build_modeling_frame(df: pd.DataFrame) -> pd.DataFrame:
     """
     Full feature-engineering pipeline for TRAINING/EVALUATION:
-    features + target, with incomplete rows removed.
+    features + targets, with incomplete rows removed.
 
     Removes the first row (no previous close -> no return) and the last row
     (no next day -> no target).
     """
-    out = add_target(add_features(df), ticker)
-    return out.dropna(subset=ENGINEERED_FEATURES + ["target"])
+    return add_features_and_target(df).dropna()
 
 
-def build_inference_frame(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
+def build_inference_frame(df: pd.DataFrame) -> pd.DataFrame:
     """
     Feature pipeline for PREDICTION: same features, but keep the most recent
     row (it has no target yet - that is what we want to predict).
     """
-    return add_features(df, ticker).dropna(subset=ENGINEERED_FEATURES)
+    return add_features_and_target(df).dropna(subset=ENGINEERED_FEATURES)

@@ -1,0 +1,25 @@
+{
+  "run_name": "gru_close_volume_log_return",
+  "model_name": "gru",
+  "target_mode": "log_return",
+  "feature_columns": [
+    "log_return",
+    "log_volume",
+    "volume_change"
+  ],
+  "lookback": 60,
+  "hparams": {
+    "units": 64,
+    "kernel_size": 5,
+    "dropout": 0.2,
+    "learning_rate": 0.001,
+    "batch_size": 32
+  },
+  "epochs_run": 24,
+  "best_epoch": 14,
+  "best_val_loss": 0.3913681209087372,
+  "n_parameters": 13313,
+  "train_seconds": 30.2,
+  "trained_at": "2026-11-11T21:14:04",
+  "tensorflow_version": "2.16.2"
+}
