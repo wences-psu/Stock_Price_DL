@@ -17,16 +17,16 @@ Stock prediction is a times series.
 
 ---
 
-## 2. Stationarity: why we predict returns, not prices.
+## 2. Stationarity: prices versus returns.
 
 A series is **stationary** when its mean and variance stay roughly constant over time.
 
 | Series | Stationary |
 |---|---|
-| Close price | Not stationary because AAPL went from ~$6 (2010, split-adjusted) to ~$316 (2026); the mean keeps rising |
+| Close price | Not stationary because AAPL went from ~$6 (2010, split-adjusted) to a peak of ~$341 (2026); the mean keeps rising |
 | Daily log return | Is stationary because it fluctuates around ~0.1% per day in every period |
 
-**Relevance for neural networks.** A network learns a mapping from the input ranges it saw during training. In this project the training prices range from $5.74 to $149.35 while the test prices range from $163.22 to $339.79, so a price predicting network must **extrapolate**, which neural networks do poorly.
+**Relevance for neural networks.** A network learns a mapping from the input ranges it saw during training. In this project the training prices range from $5.74 to $152.83 while the test prices range from $163.22 to $341.07, so a price predicting network must **extrapolate**, which neural networks do poorly. The six main models predict the price, and notebook 04 shows the selected one staying below the actual close on most test days; notebook 06 then tests a log-return target.
 
 **The "tomorrow = today" baseline.** When a network predicts raw prices, the easiest way to get a low error is to output something very close to the last price in the window. The prediction chart looks good, but the model has learned nothing beyond the naive forecast.
 
@@ -131,7 +131,7 @@ sample for t=6: X = [f3 f4 f5 f6] → y = target of day 7
 
 - **samples:** how many windows (about 2,900 in training)
 - **timesteps:** `LOOKBACK` = 60 days
-- **features:** 1 (price only) or 3 (price + volume)
+- **features:** 1 (price only) or 2 (price + volume); the log-return experiment in notebook 06 uses 3
 
 **Choosing the lookback.** Too short and the model misses slower patterns; too long and there are more parameters to fit on noise, plus fewer training samples. 60 trading days (about 3 months) is a balanced starting point; it could be changed during hyperparameter tuning.
 

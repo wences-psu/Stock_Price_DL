@@ -51,7 +51,7 @@ Notebooks `01`-`06` and the single notebook all have `"keep_output": true` in th
 
 - Commit artifacts only from a complete run of notebooks `01`→`06`, in the same commit or pull request as the notebooks whose outputs they match.
 - Every rerun rewrites the model files and creates new TensorBoard log files, so Git will show them as changed even when the numbers are the same. If you ran notebooks only to try something, restore the committed versions with `git restore artifacts data` before committing.
-- `.gitattributes` marks `*.keras`, `*.h5`, `*.joblib`, `*.pkl`, `*.png` and TensorBoard event files as binary, so Git never changes their line endings.
+- `.gitattributes` marks `*.keras`, `*.h5`, `*.joblib`, `*.pkl`, TensorBoard event files, images (`*.png`, `*.jpg`, `*.jpeg`, `*.gif`), Office files (`*.docx`, `*.xlsx`, `*.pptx`), `*.pdf` and `*.zip` as binary, so Git never changes their line endings. Add any new binary file type there before committing it, or it can be corrupted.
 
 ## Alternative: the single notebook
 

@@ -10,7 +10,7 @@ A **dense (fully connected) layer** computes
 
 $$\mathbf{y} = \phi(W\mathbf{x} + \mathbf{b})$$
 
-where $W$ (weights) and $\mathbf{b}$ (biases) are learned, and $\phi$ is an **activation function**. The final layer in this project uses no activation (linear), because a return can be any real number. Hidden layers use `relu`, $\max(0, x)$, which lets the network model non-linear relationships.
+where $W$ (weights) and $\mathbf{b}$ (biases) are learned, and $\phi$ is an **activation function**. The final layer in this project uses no activation (linear), because its target, a scaled price (or a scaled log return in notebook 06), can be any real number. The non-linear activations inside the network let it model non-linear relationships: the LSTM and GRU use sigmoid and tanh in their gates (sections 3 and 4), and the 1D-CNN uses `relu`, $\max(0, x)$.
 
 ### How training works
 1. **Forward pass:** feed a batch of windows through the network to get predictions.
@@ -44,7 +44,7 @@ The **same weights** are reused at every time step, so the model size does not g
 
 ---
 
-## 3. LSTM (Long Short-Term Memory) – the main model
+## 3. LSTM (Long Short-Term Memory)
 
 An LSTM cell adds a **cell state** $C_t$, a "conveyor belt" of memory, and three **gates**. Each gate is a sigmoid (0 to 1) that decides how much information flows through:
 
@@ -65,10 +65,12 @@ The cell state is updated by **addition** rather than repeated multiplication, s
 
 ```
 Input (60, n_features)
-  └─ LSTM(64, return_sequences=True)  → (60, 64)   one hidden vector per day
+  └─ LSTM(64)            → (64,)   the hidden state after the last day of the window
       └─ Dropout(0.2)
-            └─ Dense(1)      → (1,)       the predicted (scaled) next-day return
+            └─ Dense(1)      → (1,)    the predicted (scaled) next-day close
 ```
+
+`build_gru` is the same with `GRU(64)` in place of the LSTM layer.
 
 ### LSTM parameters
 
@@ -76,11 +78,11 @@ An LSTM has 4 weight sets (3 gates + candidate), each over `[h_{t-1}, x_t]`:
 
 $$\text{params} = 4 \times \big(u \times (u + d) + u\big) \quad (u = \text{units}, d = \text{input dim})$$
 
-| Layer (with 3 features) | Computation | Parameters |
+| Layer | Price only (d=1) | Price + volume (d=2) |
 |---|---|---|
-| LSTM(64), d=3 | 4 × (64 × 67 + 64) | 17,408 |
-| Dense(1) from 64 | 64 + 1 | 65 |
-| **Total** | | **17,473** |
+| LSTM(64) | 4 × (64 × 65 + 64) = 16,896 | 4 × (64 × 66 + 64) = 17,152 |
+| Dense(1) from 64 | 64 + 1 = 65 | 64 + 1 = 65 |
+| **Total** | **16,961** | **17,217** |
 
 ---
 
@@ -144,7 +146,7 @@ $$
 
 - For small errors it behaves like **MSE** (smooth, strongly penalizes moderate errors).
 - For large errors it behaves like **MAE** (grows linearly), so a crash day does not dominate the gradients.
-- Targets are standardized, so δ = 1 means errors beyond about one standard deviation of daily returns are treated linearly.
+- Targets are standardized with the training mean and standard deviation, so δ = 1 means errors beyond one standard deviation of the training target are treated linearly. For the six price models that is about $33.50 of closing price; for the log-return model in notebook 06 it is about 1.8% of daily return.
 
 | Loss | Sensitive to outliers | Optimal prediction under noise |
 |---|---|---|
