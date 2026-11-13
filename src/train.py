@@ -59,14 +59,23 @@ def set_seeds(seed: int = config.SEED) -> None:
     keras.utils.set_random_seed(seed)
 
 
-def run_name(model_name: str, use_volume: bool, target_mode: str = config.TARGET_MODE, suffix: str = "") -> str:
+def run_name(
+    model_name: str,
+    use_volume: bool,
+    target_mode: str = config.TARGET_MODE,
+    suffix: str = "",
+    input_mode: str = config.INPUT_MODE,
+) -> str:
     """
     Folder name for a run, e.g. 'lstm_close', 'gru_close_volume', 'lstm_close_price-target',
-    or 'lstm_close_volume_tuned' with suffix='_tuned'.
+    'lstm_close_volume_returns' with input_mode='returns', or 'lstm_close_volume_tuned'
+    with suffix='_tuned'.
     """
     name = f"{model_name}_{'close_volume' if use_volume else 'close'}"
     if target_mode != "log_return":
         name += "_price-target"
+    if input_mode != "levels":
+        name += f"_{input_mode}"
     return name + suffix
 
 
@@ -109,20 +118,22 @@ def train_model(
     kernel_size: int = config.KERNEL_SIZE,
     dropout: float = config.DROPOUT,
     suffix: str = "",
+    input_mode: str = config.INPUT_MODE,
 ) -> TrainingResult:
     """
     Full training run: prepare data -> build model -> fit -> save artifacts.
 
     units, kernel_size, dropout, learning_rate and batch_size default to the
     shared settings in config.py; notebook 06 passes the tuned values and
-    suffix="_tuned" so the tuned run gets its own folder.
+    suffix="_tuned" so the tuned run gets its own folder, and input_mode="returns"
+    for the stationary inputs (saved with a "_returns" suffix).
 
     Every run starts from a cleared Keras session and the same seed, so its
     result does not depend on which runs were trained before it.
     """
     keras.backend.clear_session()
     set_seeds(config.SEED)
-    name = run_name(model_name, use_volume, target_mode, suffix)
+    name = run_name(model_name, use_volume, target_mode, suffix, input_mode)
     out_dir = Path(artifacts_dir) / name
     out_dir.mkdir(parents=True, exist_ok=True)
     if verbose:
@@ -131,7 +142,7 @@ def train_model(
     # Data preparation (see src/preprocessing.py)
     data = load_prepared_data(
         use_volume=use_volume, target_mode=target_mode, lookback=lookback, start_date=start_date,
-        verbose=bool(verbose),
+        verbose=bool(verbose), input_mode=input_mode,
     )
     train, val = data.splits["train"], data.splits["val"]
     if verbose:
@@ -188,6 +199,7 @@ def train_model(
         "model_name": model_name,
         "use_volume": use_volume,
         "target_mode": target_mode,
+        "input_mode": input_mode,
         "feature_columns": data.feature_columns,
         "lookback": lookback,
         "start_date": start_date,
@@ -236,6 +248,7 @@ def load_run(name: str, artifacts_dir: Path = config.ARTIFACTS_DIR) -> TrainingR
         feature_scaler=arts["feature_scaler"],
         target_scaler=arts["target_scaler"],
         verbose=False,
+        input_mode=meta.get("input_mode", "levels"),  # runs saved before notebook 06 have no input_mode
     )
     return TrainingResult(model=arts["model"], history=history, data=data, artifact_dir=run_dir, metadata=meta)
 
@@ -248,6 +261,7 @@ def train_or_load(
     artifacts_dir: Path = config.ARTIFACTS_DIR,
     hparams: Optional[dict] = None,
     suffix: str = "",
+    input_mode: str = config.INPUT_MODE,
 ) -> TrainingResult:
     """
     Train a run when retrain is True (config.RETRAIN by default); otherwise
@@ -255,12 +269,13 @@ def train_or_load(
 
     hparams: optional dict with any of units, kernel_size, dropout,
     learning_rate and batch_size (e.g. the best tuning trial).
+    input_mode: "levels" (default) or "returns" (see config.INPUT_MODE).
     """
     retrain = config.RETRAIN if retrain is None else retrain
     if retrain:
         return train_model(model_name, use_volume, target_mode, artifacts_dir=artifacts_dir, verbose=0,
-                           suffix=suffix, **(hparams or {}))
-    result = load_run(run_name(model_name, use_volume, target_mode, suffix), artifacts_dir)
+                           suffix=suffix, input_mode=input_mode, **(hparams or {}))
+    result = load_run(run_name(model_name, use_volume, target_mode, suffix, input_mode), artifacts_dir)
     m = result.metadata
     print(f"{m['run_name']:<24} reloaded ({m['epochs_run']} epochs, best epoch {m['best_epoch']}, "
           f"val_loss {m['best_val_loss']:.4f})")

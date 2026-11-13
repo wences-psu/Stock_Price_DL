@@ -172,7 +172,11 @@ $$
 
 ### Hyperparameter tuning
 
-`src/tuning.py` runs a KerasTuner random search (20 trials) over units or filters, dropout, learning rate and batch size (and kernel size for a CNN) for the selected model, scored by validation loss only. Notebook 06 then retrains the best combination with `train_model` (saved as `<run>_tuned`) and compares it with the original by validation RMSE in dollars.
+`src/tuning.py` runs a KerasTuner random search (20 trials) over units or filters, dropout, learning rate and batch size (and kernel size for a CNN) for one run, scored by validation loss only. Notebook 06 then retrains the best combination with `train_model` (saved as `<run>_tuned`) and compares it with the original by validation RMSE in dollars.
+
+### Stationary inputs
+
+The six models see the scaled closing price (and volume). The scaler is fitted on the training period, so later prices far above that range become input values the network never saw, and its output drifts. `config.INPUT_MODE = "returns"` (passed as `input_mode` to `train_or_load`) replaces the inputs with the daily log return, and with volume the log volume and its daily change; these series do not drift with the price level. The target, lookback, split and scaling steps stay the same, and the runs are saved with a `_returns` suffix. Notebook 06 trains the selected configuration this way, picks the better version by validation RMSE, and tunes that one.
 
 ### Reading learning curves
 

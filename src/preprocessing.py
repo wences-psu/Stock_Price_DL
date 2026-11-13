@@ -228,13 +228,16 @@ def load_prepared_data(
     feature_scaler: Optional[StandardScaler] = None,
     target_scaler: Optional[StandardScaler] = None,
     verbose: bool = True,
+    input_mode: str = config.INPUT_MODE,
 ) -> PreparedData:
     """
     Convenience pipeline: load CSV -> engineer features/target -> split, scale, window.
+
+    input_mode chooses the input columns ("levels" or "returns", see config.INPUT_MODE).
     """
     df = load_stock_data(data_path, start_date=start_date, verbose=verbose)
     frame = build_modeling_frame(df, target_mode=target_mode)
-    feature_columns = get_feature_columns(use_volume)
+    feature_columns = get_feature_columns(use_volume, input_mode)
     return prepare_data(
         frame,
         feature_columns,

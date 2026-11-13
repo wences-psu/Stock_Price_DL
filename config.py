@@ -62,6 +62,17 @@ USE_VOLUME = False
 #                 its runs are saved with a "_price-target" suffix.
 TARGET_MODE = "log_return"
 
+# What the network sees as inputs:
+#   "levels":  the closing price (and the volume), scaled with the training mean
+#              and std. Used by the six models. Prices far above the training
+#              range are a problem: the scaled inputs keep growing and the
+#              network has never seen such values.
+#   "returns": stationary inputs: the daily log return (and the log volume and
+#              its daily change). Their scale does not drift with the price
+#              level. Used by the second iteration in notebook 06; its runs are
+#              saved with a "_returns" suffix.
+INPUT_MODE = "levels"
+
 # Window size for the moving average baseline.
 MA_WINDOW = 5
 

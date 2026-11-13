@@ -200,6 +200,7 @@ def compare_runs(
             feature_scaler=arts["feature_scaler"],
             target_scaler=arts["target_scaler"],
             verbose=False,
+            input_mode=meta.get("input_mode", "levels"),
         )
         pred_df = predict_split(arts["model"], data, split)
 

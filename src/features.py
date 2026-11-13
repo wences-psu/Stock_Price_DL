@@ -16,11 +16,13 @@ import numpy as np
 import pandas as pd
 import config
 
-# Price only features.
+# Inputs in "levels" mode (config.INPUT_MODE): price only, plus the extra column when volume is included.
 PRICE_FEATURES = ["Close"]
-
-# Extra inputs added when volume is included.
 VOLUME_FEATURES = ["Volume"]
+
+# Inputs in "returns" mode: the stationary equivalents of the columns above.
+RETURN_PRICE_FEATURES = ["log_return"]
+RETURN_VOLUME_FEATURES = ["log_volume", "volume_change"]
 
 # All engineered features.
 ENGINEERED_FEATURES = ["log_return", "log_volume", "volume_change"]
@@ -50,16 +52,26 @@ def add_features(df: pd.DataFrame, ticker: str = config.TICKER) -> pd.DataFrame:
     return out
 
 
-def get_feature_columns(use_volume: bool) -> list:
+def get_feature_columns(use_volume: bool, input_mode: str = config.INPUT_MODE) -> list:
     """
     Return the list of input columns.
 
-    use_volume=False -> ["Close"]                                  (price only)
-    use_volume=True  -> ["Close", "Volume"]   (price + volume)
+    input_mode="levels"  (the six models)
+        use_volume=False -> ["Close"]                                  (price only)
+        use_volume=True  -> ["Close", "Volume"]                        (price + volume)
+    input_mode="returns" (notebook 06, stationary inputs)
+        use_volume=False -> ["log_return"]
+        use_volume=True  -> ["log_return", "log_volume", "volume_change"]
     """
-    columns = PRICE_FEATURES.copy()
+    if input_mode == "levels":
+        price, volume = PRICE_FEATURES, VOLUME_FEATURES
+    elif input_mode == "returns":
+        price, volume = RETURN_PRICE_FEATURES, RETURN_VOLUME_FEATURES
+    else:
+        raise ValueError(f"Unknown input_mode '{input_mode}'. Use 'levels' or 'returns'.")
+    columns = price.copy()
     if use_volume:
-        columns += VOLUME_FEATURES
+        columns += volume
     return columns
 
 
