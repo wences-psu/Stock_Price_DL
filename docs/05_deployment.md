@@ -87,13 +87,13 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt fastapi uvicorn
-COPY config.py ./
+COPY config.py api.py ./
 COPY src/ src/
 COPY artifacts/gru_close_volume/ artifacts/gru_close_volume/
-COPY data/ data/
+COPY data/AAPL_only.csv data/
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
-A container bundles the exact library versions, so the model behaves the same on any machine or cloud.
+A container bundles the exact library versions, so the model behaves the same on any machine or cloud. Only `data/AAPL_only.csv` is copied, because it is the only data file `predict_next_day()` reads; copying all of `data/` would also pull in the 161 MB Kaggle file if you have it locally.
 
 ---
 
@@ -111,7 +111,7 @@ Example monitoring log:
 
 | date | predicted | actual | abs error | naive abs error |
 |---|---|---|---|---|
-| 2026-09-09 | 316.59 | … | … | … |
+| 2026-09-30 | 253.65 | … | … | … |
 
 ---
 

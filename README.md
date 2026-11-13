@@ -13,6 +13,8 @@ The same project is also available as one self-contained notebook, [`notebooks/T
 ```
 Stock_Price_DL/
 ├── README.md                       <- Project overview
+├── AGENTS.md                       <- shared rules for coding agents
+├── .github/skills/git-workflow/    <- agent instructions for safe Git operations
 ├── config.py                       <- ALL settings (dates, lookback, feature sets, epochs, RETRAIN...)
 ├── requirements.txt                <- shared library versions
 ├── requirements-linux-gpu.txt      <- the same, plus CUDA libraries for Linux or WSL GPUs
@@ -39,7 +41,7 @@ Stock_Price_DL/
 │   ├── 05_deployment.ipynb
 │   ├── 06_improvements.ipynb
 │   └── Team7_Deep_Learning_Final_Project.ipynb   <- optional: the whole project in one notebook
-├── docs/                           <- concept and team guides
+├── docs/                           <- concept and team guides, and the final report (.docx)
 ├── stock_eval312_*.yml / *.txt     <- record of Basma's original Mac environment
 └── artifacts/                      <- models, scalers, metrics, predictions, plots, logs, tuning trials
 ```
@@ -97,7 +99,7 @@ A full run takes about 25 minutes on a laptop CPU, most of it in the tuning step
 
 ## Alternative: single notebook
 
-[`notebooks/Team7_Deep_Learning_Final_Project.ipynb`](notebooks/Team7_Deep_Learning_Final_Project.ipynb) contains the whole project, code and report text, in one notebook that needs no other project code. It is based on the code temaplate notebook. It has its own copy of the code, follows exactly the same steps as notebooks 01-06, writes the same run folders in `artifacts/`, and gives the same results; its saved outputs are the official CPU run quoted below.
+[`notebooks/Team7_Deep_Learning_Final_Project.ipynb`](notebooks/Team7_Deep_Learning_Final_Project.ipynb) contains the whole project, code and report text, in one notebook that needs no other project code. It is based on the code template notebook. It has its own copy of the code, follows exactly the same steps as notebooks 01-06, writes the same run folders in `artifacts/`, and gives the same results; its saved outputs are the official CPU run quoted below.
 
 ---
 
