@@ -4,139 +4,139 @@
     "dropout": 0.0,
     "learning_rate": 0.002793674101922152,
     "batch_size": 64,
-    "best val loss": 0.3836590647697449
+    "best val loss": 0.3836613893508911
   },
   {
     "units": 128,
     "dropout": 0.2,
     "learning_rate": 0.0013269381384582765,
     "batch_size": 32,
-    "best val loss": 0.3838857412338257
+    "best val loss": 0.38388684391975403
   },
   {
     "units": 128,
     "dropout": 0.4,
     "learning_rate": 0.0003007619891093693,
     "batch_size": 16,
-    "best val loss": 0.3838881850242615
+    "best val loss": 0.38388845324516296
   },
   {
     "units": 32,
     "dropout": 0.4,
     "learning_rate": 0.0016665994084742143,
     "batch_size": 32,
-    "best val loss": 0.383938193321228
+    "best val loss": 0.3839395344257355
   },
   {
     "units": 32,
     "dropout": 0.2,
     "learning_rate": 0.00021436265624100314,
     "batch_size": 16,
-    "best val loss": 0.38397714495658875
+    "best val loss": 0.3839772045612335
   },
   {
     "units": 128,
     "dropout": 0.30000000000000004,
     "learning_rate": 0.00023125106501274982,
     "batch_size": 16,
-    "best val loss": 0.38404378294944763
+    "best val loss": 0.3840444087982178
   },
   {
     "units": 32,
     "dropout": 0.30000000000000004,
     "learning_rate": 0.0023349436917783272,
     "batch_size": 32,
-    "best val loss": 0.3841576874256134
+    "best val loss": 0.3841593861579895
   },
   {
     "units": 128,
     "dropout": 0.4,
     "learning_rate": 0.0001639378117191214,
     "batch_size": 16,
-    "best val loss": 0.3842622935771942
+    "best val loss": 0.38426369428634644
   },
   {
     "units": 64,
     "dropout": 0.0,
     "learning_rate": 0.0005406084430304633,
     "batch_size": 64,
-    "best val loss": 0.3844192624092102
+    "best val loss": 0.3844204246997833
   },
   {
     "units": 64,
     "dropout": 0.4,
     "learning_rate": 0.0004544902917332871,
     "batch_size": 32,
-    "best val loss": 0.38444122672080994
+    "best val loss": 0.38444164395332336
   },
   {
     "units": 32,
     "dropout": 0.30000000000000004,
     "learning_rate": 0.00016428311852601535,
     "batch_size": 32,
-    "best val loss": 0.3844873309135437
+    "best val loss": 0.38448917865753174
   },
   {
     "units": 32,
     "dropout": 0.1,
     "learning_rate": 0.0003951159857999515,
     "batch_size": 16,
-    "best val loss": 0.38464072346687317
+    "best val loss": 0.38464099168777466
   },
   {
     "units": 32,
     "dropout": 0.4,
     "learning_rate": 0.00033091738433114126,
     "batch_size": 32,
-    "best val loss": 0.38483795523643494
+    "best val loss": 0.3848384916782379
   },
   {
     "units": 32,
     "dropout": 0.1,
     "learning_rate": 0.00013285256291974677,
     "batch_size": 32,
-    "best val loss": 0.38499289751052856
+    "best val loss": 0.38499319553375244
   },
   {
     "units": 32,
     "dropout": 0.4,
     "learning_rate": 0.0004633966930869619,
     "batch_size": 32,
-    "best val loss": 0.3849945664405823
+    "best val loss": 0.3849964141845703
   },
   {
     "units": 64,
     "dropout": 0.0,
     "learning_rate": 0.00012896725256243365,
     "batch_size": 64,
-    "best val loss": 0.3851296007633209
+    "best val loss": 0.3851317763328552
   },
   {
     "units": 64,
     "dropout": 0.0,
     "learning_rate": 0.00040128879246978144,
     "batch_size": 16,
-    "best val loss": 0.3854270577430725
+    "best val loss": 0.38543701171875
   },
   {
     "units": 64,
     "dropout": 0.4,
     "learning_rate": 0.00013596994406482916,
     "batch_size": 64,
-    "best val loss": 0.38584184646606445
+    "best val loss": 0.3858413100242615
   },
   {
     "units": 32,
     "dropout": 0.2,
     "learning_rate": 0.00022893134678396497,
     "batch_size": 64,
-    "best val loss": 0.3863969147205353
+    "best val loss": 0.38639503717422485
   },
   {
     "units": 32,
     "dropout": 0.1,
     "learning_rate": 0.002105505791153879,
     "batch_size": 64,
-    "best val loss": 0.38698187470436096
+    "best val loss": 0.3869752287864685
   }
 ]

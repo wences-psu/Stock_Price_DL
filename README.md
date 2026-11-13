@@ -1,10 +1,10 @@
 # Next day stock price prediction with deep learning (Keras / TensorFlow)
 
-A project that predicts the **next trading day's closing price** of Apple (AAPL) with LSTM, GRU and 1D-CNN networks, each tested with closing price alone and with closing price plus **trading volume**. Every network predicts the next-day **log return**, which is converted back to a closing price and compared in dollars with simple baselines. The selected model is then improved with hyperparameter tuning.
+A project that predicts the **next trading day's closing price** of Apple (AAPL) with LSTM, GRU and 1D-CNN networks, each tested with closing price alone and with closing price plus **trading volume**. Every network predicts the next-day **log return**, which is converted back to a closing price and compared in dollars with simple baselines. The selected model then goes through two improvement iterations: a change of inputs from price levels to daily log returns, and hyperparameter tuning of the better version.
 
 The project follows the **CRISP-DM** framework from start to finish: business understanding, data understanding, data preparation, modeling, evaluation and deployment. Each phase has its own notebook, the reusable code lives in `src/`, and every setting is in `config.py`.
 
-> **Branch note.** This is the `review/a5155cd-log-return` branch. It starts from commit `a5155cd` (the six log-return models described in the original write-up) and fixes the errors found in that version, using the same environment and Git setup as `main`. `main` holds the other version of the project: six price-target models plus a tuning and log-return iteration. This branch adds the same tuning step to the selected log-return model.
+> **Branch note.** This is the `review/a5155cd-log-return` branch. It starts from commit `a5155cd` (the six log-return models described in the original write-up) and fixes the errors found in that version, using the same environment and Git setup as `main`. `main` holds the other version of the project: six price-target models plus a tuning and log-return iteration. This branch adds the same tuning step to the selected log-return model, and a second improvement iteration with stationary inputs.
 
 ---
 
@@ -13,7 +13,7 @@ The project follows the **CRISP-DM** framework from start to finish: business un
 ```
 Stock_Price_DL/
 ├── README.md                       <- Project overview
-├── config.py                       <- ALL settings (dates, lookback, target, epochs, tuning trials, RETRAIN...)
+├── config.py                       <- ALL settings (dates, lookback, target, inputs, epochs, tuning trials, RETRAIN...)
 ├── requirements.txt                <- shared library versions
 ├── requirements-linux-gpu.txt      <- the same, plus CUDA libraries for Linux or WSL GPUs
 ├── data/
@@ -84,7 +84,7 @@ Open the notebooks in order, choose the `stock_eval312` kernel, and run each one
 | `03_modeling` | Modeling | Trains the six configurations and selects one by validation loss |
 | `04_evaluation` | Evaluation | Test metrics in dollars, baselines, volume effect, Diebold-Mariano tests |
 | `05_deployment` | Deployment | Reloads the selected model, predicts the next day, replays the last 20 days |
-| `06_improvements` | Next iteration | KerasTuner tuning of the selected model, compared by validation RMSE |
+| `06_improvements` | Next iterations | Stationary inputs (log returns) for the selected model, then KerasTuner tuning, compared by validation RMSE |
 
 | Setting in `config.py` | Effect |
 |---|---|
@@ -125,6 +125,7 @@ These numbers come from the official CPU run shown in notebooks 03 to 06. All ev
 | Model | Test MAE (USD) | Test RMSE (USD) | Dir. acc. (%) |
 |---|---|---|---|
 | Random walk + drift baseline | 2.84 | 4.15 | 55.2 |
+| LSTM price + volume, log-return inputs (notebook 06) | 2.86 | 4.16 | 51.7 |
 | Naive baseline | 2.85 | 4.16 | n/a |
 | CNN price + volume | 2.87 | 4.17 | 49.8 |
 | CNN price only | 2.87 | 4.18 | 47.6 |
@@ -141,12 +142,13 @@ These numbers come from the official CPU run shown in notebooks 03 to 06. All ev
 - CNN with closing prices and trading volume had the lowest test RMSE among the networks ($4.1735).
 - LSTM with closing prices and trading volume was selected by validation loss, not test performance; it ranked fourth of six on the test set. The six validation losses differ only in the third decimal.
 - Adding trading volume lowered the test RMSE of all three architectures; the improvement is significant for LSTM and GRU (p < 0.001) but not for CNN (p = 0.12).
-- Hyperparameter tuning (20 KerasTuner trials) improved the selected model's validation RMSE by less than a tenth of a cent ($2.7048 to $2.7040), but its test RMSE rose from $4.24 to $5.09: the tuned model (no dropout, higher learning rate) amplified the bias below.
 - Every network is biased toward predicting a fall: the selected model predicts a rise on 5.9% of test days, while the price rose on 55.2% of them. The inputs are scaled price levels, and test prices lie far above the training range.
+- Notebook 06, iteration 1: retraining the selected model with stationary inputs (daily log return, log volume and its change) removes the bias (it predicts a rise on 84.2% of test days) and gives the lowest test RMSE of any network ($4.16, between the drift and naive baselines). On the validation set, however, it scored slightly worse than the original ($2.7175 versus $2.7048), so by the rule set in advance the original went on to tuning.
+- Notebook 06, iteration 2: hyperparameter tuning (20 KerasTuner trials) improved the selected model's validation RMSE by less than a tenth of a cent ($2.7048 to $2.7040), but its test RMSE rose from $4.24 to $5.08: the tuned model (no dropout, higher learning rate) amplified the bias. All versions sit within 0.003 of the validation loss of a model that always predicts the average return, so the validation period cannot tell them apart.
 
 ### Deployment decision
 
-The historical demonstration predicted a close of $328.00 for September 30, 2026, using data through September 29, 2026, when the last close was $329.40. The selected model's 20-day historical replay had an MAE of $3.97, compared with $3.74 for the naive forecast on the same days; the tuned version's replay MAE was $7.09.
+The historical demonstration predicted a close of $328.00 for September 30, 2026, using data through September 29, 2026, when the last close was $329.40. The selected model's 20-day historical replay had an MAE of $3.97, compared with $3.74 for the naive forecast on the same days; the tuned version's replay MAE was $7.09 and the stationary-input version's $3.87 (it predicted $330.16 for the same day).
 
 Production deployment is not recommended, because no model outperformed the simple forecasting baselines. This was a historical demonstration, not a current stock-price forecast.
 
