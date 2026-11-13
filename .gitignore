@@ -1,8 +1,10 @@
 # data/ and artifacts/ are tracked on purpose: the dataset, derived data, trained
 # models, scalers, logs and plots are part of the deliverable.
 # Except the original Kaggle file: it is 161 MB (over GitHub's 100 MB limit) and can be
-# downloaded again; src/extract_aapl.py rebuilds data/AAPL_only.csv from it.
+# downloaded again; src/extract_aapl.py rebuilds data/AAPL_only.csv from it (its output,
+# data/AAPL_only_verified.csv, is only for checking and is ignored too).
 data/SnP_daily_update.csv
+data/AAPL_only_verified.csv
 *:Zone.Identifier
 **/__pycache__/
 *.pyc
