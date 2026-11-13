@@ -1,13 +1,12 @@
 """
 models.py - CRISP-DM phase 4: Modeling (network architectures).
 
-All models use the Keras *functional API*: we create an Input tensor, pass
-it through layers one by one, and wrap input + output in a keras.Model.
-This style makes the data flow explicit and scales to complex architectures
-(multiple inputs, skip connections) later.
+All models are keras.Sequential stacks: an Input layer, the core layer(s)
+of the architecture, Dropout, and one Dense output unit.
 
 Input shape for every model: (LOOKBACK, n_features)
-    e.g. (60, 1) with price only, (60, 3) with Close + Volume.
+    e.g. (60, 1) with price only, (60, 2) with Close + Volume,
+    (60, 3) with the log-return inputs of notebook 06 (log return, log volume, volume change).
 Output: 1 number - the (scaled) target for the next day.
 
 See docs/03_deep_learning_models.md for how LSTM, GRU and 1D-CNN work.

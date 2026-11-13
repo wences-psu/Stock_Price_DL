@@ -6,7 +6,7 @@ This document explains `src/evaluate.py` and `notebooks/04_evaluation.ipynb`.
 
 ## 1. Evaluation units
 
-The network is trained on **scaled log returns**, but bussines deal in **dollars**. Every prediction is therefore converted back before computing metrics:
+The network is trained on **scaled log returns**, but business decisions are made in **dollars**. Every prediction is therefore converted back before computing metrics:
 
 ```
 model output (scaled) ──inverse_transform──▶ log return ──C_t · exp(r)──▶ price in $
@@ -29,7 +29,7 @@ Let $y_i$ be the actual next-day close, $\hat y_i$ the prediction, and $n$ the n
 
 **Directional accuracy?** A model can have a low MAE and still be useless for decisions if it gets the direction wrong. Conversely, a model with correct direction 55% of the time could be valuable even with a mediocre MAE.
 
-**Caveat:** if the test period went up on 53% of days, a model that *always* predicts "up" reaches 53% directional accuracy. The "random walk + drift" baseline behaves like this, because its drift is positive.
+**Caveat:** the price went up on 55.2% of the test days, so a model that *always* predicts "up" reaches 55.2% directional accuracy. The "random walk + drift" baseline behaves like this, because its drift is positive: its directional accuracy is exactly 55.2%.
 
 ---
 
@@ -61,7 +61,7 @@ With about 630 test days, small differences between models can easily come from 
 | positive | < 0.05 | Model A is significantly worse than B |
 | any | ≥ 0.05 | No evidence of a difference: treat them as equivalent |
 
-The notebook uses the simple 1-step version. For multi-step forecasts, the variance must be corrected for autocorrelation (Newey-West) [3], and the Harvey-Leybourne-Newbold (1997) [2] correction improves small sample behavior.
+The notebook uses the simple 1-step version. For multi-step forecasts, the variance must be corrected for autocorrelation (Newey-West) [3], and the Harvey-Leybourne-Newbold (1997) [4] correction improves small sample behavior. Notebook 04 implements the test itself with NumPy and `scipy.stats`; reference [2] documents the same test in the statsmodels library.
 
 ---
 
@@ -88,7 +88,7 @@ Any forecast close to $C_t$ produces a curve that looks like the actual price sh
 - **Long tails:** a few very large misses on news days (earnings, macro shocks); no price-based model can foresee them.
 
 ### Spread of predicted returns
-If the standard deviation of predicted returns is much smaller than that of actual returns, the model is making near average predictions to minimize the loss When the target is mostly noise.
+If the standard deviation of predicted returns is much smaller than that of actual returns, the model is making near average predictions to minimize the loss when the target is mostly noise.
 
 ### Metric comparison bars
 Models are blue and baselines gray. The best entry is at the top. If a gray bar is at the top, the neural networks did not beat that baseline.
@@ -135,3 +135,6 @@ https://doi.org/10.1080/07350015.1995.10524599
 [2] statsmodels Developers. "statsmodels.tsa.stattools.diebold_mariano_test." statsmodels 0.15.1 (+794). Accessed October 26, 2026. https://www.statsmodels.org/devel/generated/statsmodels.tsa.stattools.diebold_mariano_test.html.
 
 [3] Wikipedia contributors. Newey–West estimator [Internet]. Wikipedia, The Free Encyclopedia; 2026 Aug 24, 02:37 UTC [cited 2026 Oct 26]. Available from: https://en.wikipedia.org/w/index.php?title=Newey%E2%80%93West_estimator&oldid=1370998027.
+
+[4] Harvey, D., Leybourne, S., & Newbold, P. (1997). Testing the equality of prediction mean squared errors. International Journal of Forecasting, 13(2), 281–291.
+https://doi.org/10.1016/S0169-2070(96)00719-4

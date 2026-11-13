@@ -33,7 +33,7 @@ The model's output must be converted back using the same target mode and target 
 
 ```mermaid
 flowchart LR
-    new[(New OHLCV data)] --> load[load_stock_data<br/>validate]
+    new[(New Close and Volume data)] --> load[load_stock_data<br/>validate]
     load --> feat[build_inference_frame<br/>same features]
     feat --> win[last LOOKBACK rows]
     win --> scale[feature_scaler.transform]
@@ -51,9 +51,11 @@ flowchart LR
 ### Python
 ```python
 from src.predict import predict_next_day
-result = predict_next_day("artifacts/lstm_close")
+result = predict_next_day("artifacts/lstm_close_volume")
 print(result["predicted_close"])
 ```
+
+`lstm_close_volume` is the run notebook 05 deploys: the one with the lowest validation loss in `artifacts/metrics.csv`.
 
 ---
 
@@ -67,7 +69,7 @@ from fastapi import FastAPI
 from src.predict import load_artifacts, predict_next_day
 
 app = FastAPI(title="Next-day close API")
-ARTIFACTS = load_artifacts("artifacts/lstm_close")   # load once at startup
+ARTIFACTS = load_artifacts("artifacts/lstm_close_volume")   # load once at startup
 
 @app.get("/health")
 def health():
@@ -85,13 +87,13 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt fastapi uvicorn
-COPY config.py ./
+COPY config.py api.py ./
 COPY src/ src/
-COPY artifacts/lstm_close/ artifacts/lstm_close/
-COPY data/ data/
+COPY artifacts/lstm_close_volume/ artifacts/lstm_close_volume/
+COPY data/AAPL_only.csv data/
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
-A container bundles the exact library versions, so the model behaves the same on any machine or cloud.
+A container bundles the exact library versions, so the model behaves the same on any machine or cloud. Only `data/AAPL_only.csv` is copied, because it is the only data file `predict_next_day()` reads; copying all of `data/` would also pull in the 161 MB Kaggle file if you have it locally.
 
 ---
 
@@ -109,7 +111,7 @@ Example monitoring log:
 
 | date | predicted | actual | abs error | naive abs error |
 |---|---|---|---|---|
-| 2026-09-09 | 316.59 | … | … | … |
+| 2026-09-30 | 328.00 | … | … | … |
 
 ---
 

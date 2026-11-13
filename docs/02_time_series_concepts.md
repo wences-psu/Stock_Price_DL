@@ -131,7 +131,7 @@ sample for t=6: X = [f3 f4 f5 f6] → y = target of day 7
 
 - **samples:** how many windows (about 2,900 in training)
 - **timesteps:** `LOOKBACK` = 60 days
-- **features:** 1 (price only) or 3 (price + volume)
+- **features:** 1 (price only) or 2 (price + volume) for the six models; with the log-return inputs in notebook 06, 1 or 3
 
 **Choosing the lookback.** Too short and the model misses slower patterns; too long and there are more parameters to fit on noise, plus fewer training samples. 60 trading days (about 3 months) is a balanced starting point; it could be changed during hyperparameter tuning.
 
