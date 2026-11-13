@@ -7,6 +7,16 @@
 *.pkl binary
 *.png binary
 events.out.tfevents.* binary
+# Word, Excel, PowerPoint, PDF and archive files are ZIP or binary data. Without these lines the
+# "* text eol=lf" rule above removes bytes that look like Windows line endings and corrupts them.
+*.docx binary
+*.xlsx binary
+*.pptx binary
+*.pdf binary
+*.zip binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
 
 # Notebooks: strip outputs and kernel/Python metadata on commit (needs nbstripout, see docs/notebook-maintenance.md)
 *.ipynb filter=nbstripout
