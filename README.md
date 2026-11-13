@@ -13,6 +13,8 @@ The project follows the **CRISP-DM** framework from start to finish: business un
 ```
 Stock_Price_DL/
 ├── README.md                       <- Project overview
+├── AGENTS.md                       <- shared rules for coding agents
+├── .github/skills/git-workflow/    <- agent instructions for safe Git operations
 ├── config.py                       <- ALL settings (dates, lookback, target, inputs, epochs, tuning trials, RETRAIN...)
 ├── requirements.txt                <- shared library versions
 ├── requirements-linux-gpu.txt      <- the same, plus CUDA libraries for Linux or WSL GPUs
@@ -38,7 +40,7 @@ Stock_Price_DL/
 │   ├── 04_evaluation.ipynb
 │   ├── 05_deployment.ipynb
 │   └── 06_improvements.ipynb
-├── docs/                           <- concept and team guides, and the project write-up
+├── docs/                           <- concept and team guides, and the project report (.docx)
 ├── stock_eval312_*.yml / *.txt     <- record of Basma's original Mac environment
 └── artifacts/                      <- models, scalers, metadata, metrics, predictions, plots, tuning trials
 ```
@@ -105,7 +107,7 @@ A full run takes about 10 minutes on a laptop CPU, most of it in the tuning step
 | [`docs/04_evaluation_metrics.md`](docs/04_evaluation_metrics.md) |
 | [`docs/05_deployment.md`](docs/05_deployment.md) |
 
-The original project write-up for this version is in [`docs/Project_Write_Up_DRAFT_DL_a5155cd.docx`](docs/Project_Write_Up_DRAFT_DL_a5155cd.docx), with a Markdown copy in [`docs/Project_Write_Up_DRAFT_DL_a5155cd.md`](docs/Project_Write_Up_DRAFT_DL_a5155cd.md).
+The project report for this version is in [`docs/Basma Hameid - Wenceslao Granados - Report.docx`](docs/Basma%20Hameid%20-%20Wenceslao%20Granados%20-%20Report.docx).
 
 ## Collaboration
 
@@ -133,13 +135,13 @@ These numbers come from the official CPU run shown in notebooks 03 to 06. All ev
 | LSTM price + volume (selected by validation loss) | 2.96 | 4.24 | 44.8 |
 | LSTM price only | 3.05 | 4.32 | 44.6 |
 | GRU price only | 3.06 | 4.33 | 44.1 |
-| LSTM price + volume, tuned | 3.83 | 5.09 | 44.3 |
+| LSTM price + volume, tuned | 3.83 | 5.08 | 44.3 |
 | 5-day moving average baseline | 4.73 | 6.45 | 48.9 |
 
 ### Key findings
 
 - None of the six models outperformed the naive or random walk with drift baselines. The two CNN models are statistically indistinguishable from the baselines (Diebold-Mariano p > 0.18); the GRU and LSTM models are significantly worse than the naive baseline (p < 0.05).
-- CNN with closing prices and trading volume had the lowest test RMSE among the networks ($4.1735).
+- CNN with closing prices and trading volume had the lowest test RMSE among the six networks ($4.1735).
 - LSTM with closing prices and trading volume was selected by validation loss, not test performance; it ranked fourth of six on the test set. The six validation losses differ only in the third decimal.
 - Adding trading volume lowered the test RMSE of all three architectures; the improvement is significant for LSTM and GRU (p < 0.001) but not for CNN (p = 0.12).
 - Every network is biased toward predicting a fall: the selected model predicts a rise on 5.9% of test days, while the price rose on 55.2% of them. The inputs are scaled price levels, and test prices lie far above the training range.

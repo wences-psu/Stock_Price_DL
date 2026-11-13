@@ -1,6 +1,6 @@
 # 01 · The CRISP-DM workflow in this project
 
-**CRISP-DM** (Cross-Industry Standard Process for Data Mining) is the most widely used framework for organizing data-science projects. It has six phases. The process is iterative and the sequence of the phases is not strcit and the project can move back and forth as needed..
+**CRISP-DM** (Cross-Industry Standard Process for Data Mining) is the most widely used framework for organizing data-science projects. It has six phases. The process is iterative: the sequence of the phases is not strict, and the project can move back and forth as needed.
 
 ```mermaid
 flowchart LR
@@ -21,7 +21,7 @@ flowchart LR
 | 2 | **Data understanding** | Assess data quality. Describe data. Explore data. Recognize patterns. | `notebooks/01_business_and_data_understanding.ipynb` (section 2) |
 | 3 | **Data preparation** | Data selection. Cleanse Data. Chronological split. Feature engineering. | `notebooks/02_data_preparation.ipynb` |
 | 4 | **Modeling** | Select Models. Design Models. Build Models. Train Models. | `notebooks/03_modeling.ipynb` |
-| 5 | **Evaluation** | Asses the model metrics compared with baselines. Verify success criteria is meet. | `notebooks/04_evaluation.ipynb` |
+| 5 | **Evaluation** | Assess the model metrics compared with baselines. Verify that the success criteria are met. | `notebooks/04_evaluation.ipynb` |
 | 6 | **Deployment** | Plan deployment. Setup Model Monitoring. Define thresholds to retrain Model when it starts drifting. | `notebooks/05_deployment.ipynb` |
 | 5 → 3, 4 | **Next iterations** | Go back with what evaluation taught us: stationary inputs for the selected model (data preparation), then hyperparameter tuning of the better version (modeling). | `notebooks/06_improvements.ipynb` |
 

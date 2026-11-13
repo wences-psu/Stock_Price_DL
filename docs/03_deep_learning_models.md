@@ -10,7 +10,7 @@ A **dense (fully connected) layer** computes
 
 $$\mathbf{y} = \phi(W\mathbf{x} + \mathbf{b})$$
 
-where $W$ (weights) and $\mathbf{b}$ (biases) are learned, and $\phi$ is an **activation function**. The final layer in this project uses no activation (linear), because a return can be any real number. Hidden layers use `relu`, $\max(0, x)$, which lets the network model non-linear relationships.
+where $W$ (weights) and $\mathbf{b}$ (biases) are learned, and $\phi$ is an **activation function**. The final layer in this project uses no activation (linear), because a return can be any real number. The non-linear activations inside the network let it model non-linear relationships: the LSTM and GRU use sigmoid and tanh in their gates (sections 3 and 4), and the 1D-CNN uses `relu`, $\max(0, x)$.
 
 ### How training works
 1. **Forward pass:** feed a batch of windows through the network to get predictions.
@@ -65,10 +65,12 @@ The cell state is updated by **addition** rather than repeated multiplication, s
 
 ```
 Input (60, n_features)
-  └─ LSTM(64, return_sequences=True)  → (60, 64)   one hidden vector per day
+  └─ LSTM(64)            → (64,)   the hidden state after the last day of the window
       └─ Dropout(0.2)
-            └─ Dense(1)      → (1,)       the predicted (scaled) next-day return
+            └─ Dense(1)      → (1,)    the predicted (scaled) next-day return
 ```
+
+`build_gru` is the same with `GRU(64)` in place of the LSTM layer.
 
 ### LSTM parameters
 
@@ -168,7 +170,7 @@ $$
 | `ReduceLROnPlateau` | `factor=0.5`, `patience=5` | Halves the learning rate when validation loss stalls, for finer steps near a minimum |
 | `ModelCheckpoint` | `save_best_only=True` | Writes the best model to `model.keras` during training |
 
-`training_callbacks()` in `src/train.py` builds these callbacks for both the main runs and the tuning trials.
+`training_callbacks()` in `src/train.py` builds these callbacks. The main runs get all three; the tuning trials get `EarlyStopping` and `ReduceLROnPlateau` only, because KerasTuner saves each trial's weights itself.
 
 ### Hyperparameter tuning
 

@@ -51,10 +51,10 @@ Do this before starting a new task:
 
 ```bash
 git switch main
-git pull origin main
+git pull --ff-only origin main
 ```
 
-`git switch main` moves you to the shared base branch. `git pull origin main` downloads the latest changes and applies them to your local `main`.
+`git switch main` moves you to the shared base branch. `git pull --ff-only origin main` downloads the latest changes and applies them to your local `main`. The `--ff-only` option makes Git stop with an error instead of creating a merge commit if your local `main` has commits that GitHub does not have; that should never happen, because nobody commits on `main`, so if it does, stop and ask for help.
 
 ### 2. Create your task branch
 
@@ -117,11 +117,11 @@ The other teammate reviews the files and leaves comments if needed. Make request
 
 ### 7. Merge and clean up
 
-After approval, merge the pull request on GitHub, preferably using squash merge for a clean history. Then update your local copy and delete the finished branch:
+After approval, merge the pull request on GitHub. Then update your local copy and delete the finished branch:
 
 ```bash
 git switch main
-git pull origin main
+git pull --ff-only origin main
 git branch -d feature/short-description
 git fetch --prune
 ```
@@ -140,7 +140,7 @@ The `-d` option refuses to delete a branch that Git believes has unmerged work. 
 | `git diff` | Show unstaged edits. |
 | `git diff --staged` | Show edits prepared for the next commit. |
 | `git fetch --prune` | Download remote updates and remove stale remote-branch names locally. |
-| `git pull origin main` | Update local `main` from GitHub. |
+| `git pull --ff-only origin main` | Update local `main` from GitHub, without creating a merge commit. |
 | `git push` | Upload commits from the current branch. |
 
 ## Safe Recovery
