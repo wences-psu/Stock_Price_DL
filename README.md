@@ -176,26 +176,36 @@ and is stored in data/AAPL_only.csv.
 ### Dataset Extraction Procedure
 
 The AAPL dataset can be reproduced using the Python script
-located at src/extract_aapl.py.
+located at `src/extract_aapl.py`.
+
+The original Kaggle file (161 MB) is not stored in Git: it is over
+GitHub's 100 MB file limit and can be downloaded again. Save it as
+`data/SnP_daily_update.csv` (ignored by Git) or in `~/Downloads`.
 
 The script performs the following steps:
 
-1. Reads SnP_daily_update.csv using its two-row header.
-2. Selects the Close and Volume columns for ticker AAPL.
-3. Preserves the original trading dates and numerical values.
-4. Creates data/AAPL_only_verified.csv.
-5. Leaves the existing data/AAPL_only.csv unchanged.
+1. Finds SnP_daily_update.csv in `data/`, then in `~/Downloads`
+   (or uses the path given with `--source`).
+2. Reads it using its two-row header.
+3. Selects the Close and Volume columns for ticker AAPL.
+4. Keeps the trading days up to `--end-date` (default 2026-09-29, the
+   last day of the project dataset). The Kaggle file is updated daily,
+   so a newer download contains more days.
+5. Creates `data/AAPL_only_verified.csv` (ignored by Git) and compares
+   it with `data/AAPL_only.csv`, which it leaves unchanged.
 
 Run the extraction script from the project root:
 
     python src/extract_aapl.py
+    python src/extract_aapl.py --source path/to/SnP_daily_update.csv
+    python src/extract_aapl.py --end-date none    # keep every day in the file
 
 ### Dataset Verification
 
 The extracted data was compared with the existing
 project dataset using pandas.
 
-Verification results:
+Verification results with the download used to build the project:
 
 - Original dataset: 4,210 AAPL records.
 - Recreated dataset: 4,210 AAPL records.
@@ -204,3 +214,9 @@ Verification results:
 The comparison confirmed that the recreated dataset
 matches the existing project dataset when loaded
 using pandas.
+
+An older download of the same Kaggle file (saved on September 21, 2026)
+ends on September 18, 2026, so it contains 4,203 of the 4,210 trading
+days. On those shared days the closing prices agree to within
+$0.0001; the volume differs only on its last day (2026-09-18), which
+Kaggle updated afterward.
