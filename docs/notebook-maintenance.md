@@ -55,7 +55,7 @@ Notebooks `01`-`06` and the single notebook all have `"keep_output": true` in th
 
 ## Alternative: the single notebook
 
-`notebooks/Team7_Deep_Learning_Final_Project.ipynb` writes the same run folders in `artifacts/` as notebooks `03` and `06`, with the same results. If you rerun it, rerun the phase notebooks too (or restore `artifacts/`) so that the committed artifacts, the phase notebooks' outputs and the single notebook's outputs all come from equivalent runs.
+`notebooks/Team7_Deep_Learning_Final_Project.ipynb` writes the same run folders in `artifacts/` as notebooks `03` and `05`, with the same results. If you rerun it, rerun the phase notebooks too (or restore `artifacts/`) so that the committed artifacts, the phase notebooks' outputs and the single notebook's outputs all come from equivalent runs.
 
 ## Daily habits
 

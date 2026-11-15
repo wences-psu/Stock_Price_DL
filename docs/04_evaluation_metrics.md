@@ -12,7 +12,7 @@ The network is trained on **scaled closing prices**, but business decisions are 
 model output (scaled) ──inverse_transform──▶ price in $
 ```
 
-In the log-return experiment (notebook 06), the converted value is a log return, and the price is rebuilt as $C_t \cdot \exp(r)$.
+In the log-return experiment (notebook 05), the converted value is a log return, and the price is rebuilt as $C_t \cdot \exp(r)$.
 
 All metrics are computed on the **test set**, a period the model never saw and that played no part in choosing settings.
 

@@ -1,6 +1,8 @@
 # 05 · Deployment and operations
 
-Deployment is the last CRISP-DM phase: putting the model where people or systems can use it on **new data**, and keeping it healthy over time.
+Deployment is the last CRISP-DM phase, reached after the final modeling iteration: putting the model where people or systems can use it on **new data**, and keeping it healthy over time.
+
+In this project the deployed run is the log-return GRU from notebook 05 (`artifacts/gru_close_volume_log_return`), chosen by validation RMSE in dollars from `artifacts/improvements_validation.csv`. Notebook 06 reloads it, checks it against the metrics in `artifacts/improvements_test.csv`, and runs the historical demonstration.
 
 ---
 
@@ -9,13 +11,13 @@ Deployment is the last CRISP-DM phase: putting the model where people or systems
 Each training run writes a self-contained folder in `artifacts/`:
 
 ```
-artifacts/lstm_close_volume/
+artifacts/gru_close_volume_log_return/
 ├── model.keras               # network architecture + trained weights
 ├── feature_scaler.joblib     # StandardScaler fitted on TRAINING features
 ├── target_scaler.joblib      # StandardScaler fitted on TRAINING targets
 ├── metadata.json             # features, lookback, target mode, hyperparameters, settings
 ├── history.json              # per-epoch loss (learning curves)
-└── predictions_test.csv      # test-set predictions (written by notebook 04)
+└── predictions_test.csv      # test-set predictions (six price runs only, written by notebook 04)
 ```
 
 The rest of `artifacts/` holds the comparison table (`metrics.csv`), the improvement tables (`improvements_*.csv`), the saved figures (`plots/`), the TensorBoard logs (`logs/`) and the KerasTuner trials (`tuning/`). All of it is tracked in Git, so the results can be inspected without retraining.
@@ -53,7 +55,7 @@ flowchart LR
 ### Python
 ```python
 from src.predict import predict_next_day
-result = predict_next_day("artifacts/gru_close_volume")
+result = predict_next_day("artifacts/gru_close_volume_log_return")
 print(result["predicted_close"])
 ```
 
@@ -69,7 +71,7 @@ from fastapi import FastAPI
 from src.predict import load_artifacts, predict_next_day
 
 app = FastAPI(title="Next-day close API")
-ARTIFACTS = load_artifacts("artifacts/gru_close_volume")   # load once at startup
+ARTIFACTS = load_artifacts("artifacts/gru_close_volume_log_return")   # load once at startup
 
 @app.get("/health")
 def health():
@@ -89,7 +91,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt fastapi uvicorn
 COPY config.py api.py ./
 COPY src/ src/
-COPY artifacts/gru_close_volume/ artifacts/gru_close_volume/
+COPY artifacts/gru_close_volume_log_return/ artifacts/gru_close_volume_log_return/
 COPY data/AAPL_only.csv data/
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
@@ -111,7 +113,7 @@ Example monitoring log:
 
 | date | predicted | actual | abs error | naive abs error |
 |---|---|---|---|---|
-| 2026-09-30 | 253.65 | … | … | … |
+| 2026-09-30 | 330.49 | … | … | … |
 
 ---
 

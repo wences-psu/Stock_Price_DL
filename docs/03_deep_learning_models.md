@@ -10,7 +10,7 @@ A **dense (fully connected) layer** computes
 
 $$\mathbf{y} = \phi(W\mathbf{x} + \mathbf{b})$$
 
-where $W$ (weights) and $\mathbf{b}$ (biases) are learned, and $\phi$ is an **activation function**. The final layer in this project uses no activation (linear), because its target, a scaled price (or a scaled log return in notebook 06), can be any real number. The non-linear activations inside the network let it model non-linear relationships: the LSTM and GRU use sigmoid and tanh in their gates (sections 3 and 4), and the 1D-CNN uses `relu`, $\max(0, x)$.
+where $W$ (weights) and $\mathbf{b}$ (biases) are learned, and $\phi$ is an **activation function**. The final layer in this project uses no activation (linear), because its target, a scaled price (or a scaled log return in notebook 05), can be any real number. The non-linear activations inside the network let it model non-linear relationships: the LSTM and GRU use sigmoid and tanh in their gates (sections 3 and 4), and the 1D-CNN uses `relu`, $\max(0, x)$.
 
 ### How training works
 1. **Forward pass:** feed a batch of windows through the network to get predictions.
@@ -146,7 +146,7 @@ $$
 
 - For small errors it behaves like **MSE** (smooth, strongly penalizes moderate errors).
 - For large errors it behaves like **MAE** (grows linearly), so a crash day does not dominate the gradients.
-- Targets are standardized with the training mean and standard deviation, so δ = 1 means errors beyond one standard deviation of the training target are treated linearly. For the six price models that is about $33.50 of closing price; for the log-return model in notebook 06 it is about 1.8% of daily return.
+- Targets are standardized with the training mean and standard deviation, so δ = 1 means errors beyond one standard deviation of the training target are treated linearly. For the six price models that is about $33.50 of closing price; for the log-return model in notebook 05 it is about 1.8% of daily return.
 
 | Loss | Sensitive to outliers | Optimal prediction under noise |
 |---|---|---|
@@ -178,7 +178,7 @@ After training, `train_run` saves the restored best model to `model.keras`.
 
 ### Hyperparameter tuning
 
-`src/tuning.py` runs a KerasTuner random search (20 trials) over units or filters, dropout, learning rate and batch size for the selected model, scored by validation loss only. Notebook 06 then retrains the best combination with `train_run`.
+`src/tuning.py` runs a KerasTuner random search (20 trials) over units or filters, dropout, learning rate and batch size for the selected model, scored by validation loss only. Notebook 05 then retrains the best combination with `train_run`.
 
 ### Reading learning curves
 

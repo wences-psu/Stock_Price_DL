@@ -1,6 +1,6 @@
 # Next day stock price prediction with deep learning (Keras / TensorFlow)
 
-A project that predicts the **next trading day's closing price** of Apple (AAPL) with 1D-CNN, LSTM and GRU networks, each tested with closing price alone and with closing price plus **trading volume**. The models are compared with simple baselines, and the best raw-price model is then improved with hyperparameter tuning and a log-return target.
+A project that predicts the **next trading day's closing price** of Apple (AAPL) with 1D-CNN, LSTM and GRU networks, each tested with closing price alone and with closing price plus **trading volume**. The models are compared with simple baselines, and the best raw-price model is then improved with hyperparameter tuning and a log-return target, and the best improved version is used in the deployment demonstration.
 
 The project follows the **CRISP-DM** framework from start to finish: business understanding, data understanding, data preparation, modeling, evaluation and deployment. Each phase has its own notebook, the reusable code lives in `src/`, and every setting is in `config.py`.
 
@@ -27,7 +27,7 @@ Stock_Price_DL/
 │   ├── preprocessing.py            <- split, scale, windows, tf.data pipelines
 │   ├── models.py                   <- CNN, LSTM and GRU architectures
 │   ├── train.py                    <- training, saving and reloading runs
-│   ├── tuning.py                   <- KerasTuner search (notebook 06)
+│   ├── tuning.py                   <- KerasTuner search (notebook 05)
 │   ├── evaluate.py                 <- baselines, metrics and comparison tables
 │   ├── predict.py                  <- next-day prediction and historical replay
 │   ├── plotting.py                 <- shared chart style
@@ -38,8 +38,8 @@ Stock_Price_DL/
 │   ├── 02_data_preparation.ipynb
 │   ├── 03_modeling.ipynb
 │   ├── 04_evaluation.ipynb
-│   ├── 05_deployment.ipynb
-│   ├── 06_improvements.ipynb
+│   ├── 05_improvements.ipynb
+│   ├── 06_deployment.ipynb
 │   └── Team7_Deep_Learning_Final_Project.ipynb   <- optional: the whole project in one notebook
 ├── docs/                           <- concept and team guides, and the final report (.docx)
 ├── stock_eval312_*.yml / *.txt     <- record of Basma's original Mac environment
@@ -85,15 +85,15 @@ Open the notebooks in order, choose the `stock_eval312` kernel, and run each one
 | `02_data_preparation` | Data preparation | Features, targets, split, scaling, windows, leakage checks |
 | `03_modeling` | Modeling | Trains the six configurations and selects one by validation loss |
 | `04_evaluation` | Evaluation | Test metrics in dollars, baselines, volume effect, Diebold-Mariano tests |
-| `05_deployment` | Deployment | Reloads the selected model, predicts the next day, replays the last 20 days |
-| `06_improvements` | Next iteration | KerasTuner tuning and a log-return target for the selected model |
+| `05_improvements` | Next iteration (back to Modeling) | KerasTuner tuning and a log-return target for the selected model; the best version is chosen by validation RMSE |
+| `06_deployment` | Deployment | Reloads the best improved model (the log-return GRU), predicts the next day, replays the last 20 days |
 
 | Setting in `config.py` | Effect |
 |---|---|
-| `RETRAIN = True` (default) | Notebooks 03 and 06 train everything from scratch |
+| `RETRAIN = True` (default) | Notebooks 03 and 05 train everything from scratch |
 | `RETRAIN = False` | They reload the saved models and tuning results from `artifacts/` |
 
-A full run takes about 25 minutes on a laptop CPU, most of it in the tuning step of notebook 06. CPU and GPU runs select the same model and reach the same conclusions, with small differences in the numbers. To view the training logs, run `tensorboard --logdir artifacts/logs` from the project folder.
+A full run takes about 25 minutes on a laptop CPU, most of it in the tuning step of notebook 05. CPU and GPU runs select the same model and reach the same conclusions, with small differences in the numbers. To view the training logs, run `tensorboard --logdir artifacts/logs` from the project folder.
 
 ---
 
@@ -126,7 +126,7 @@ Each teammate should work on a short lived branch and merge into `main` through 
 
 ## Results
 
-These numbers come from the official CPU run. Notebooks 04 and 06 and the single notebook all show them. All evaluations use the same 632 held-out test days, from March 22, 2024, through September 29, 2026.
+These numbers come from the official CPU run. Notebooks 04 and 05 and the single notebook all show them. All evaluations use the same 632 held-out test days, from March 22, 2024, through September 29, 2026.
 
 | Model | Test RMSE (USD) |
 |---|---|
@@ -152,7 +152,7 @@ These numbers come from the official CPU run. Notebooks 04 and 06 and the single
 
 ### Deployment decision
 
-The historical demonstration predicted a close of $253.65 for September 30, 2026, using data through September 29, 2026, when the last close was $329.40. The selected model's 20-day historical replay had an MAE of $78.24, compared with $3.85 for the log-return version.
+The deployed model is the log-return GRU, the best improved version by validation RMSE. Using data through September 29, 2026, when the last close was $329.40, it predicted a close of $330.49 for September 30, 2026, a change of +0.33%. Its 20-day historical replay had an MAE of $3.85, compared with $78.24 for the originally selected raw-price GRU, which predicted $253.65 (-22.99%) for the same day.
 
 Production deployment is not recommended, because no model outperformed the simple forecasting baselines. This was a historical demonstration, not a current stock-price forecast.
 
