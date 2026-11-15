@@ -39,7 +39,7 @@ def load_artifacts(artifact_dir: Union[str, Path]) -> dict:
     """
     artifact_dir = Path(artifact_dir)
     if not (artifact_dir / MODEL_FILENAME).exists():
-        raise FileNotFoundError(f"No {MODEL_FILENAME} in {artifact_dir}. Train the model first (notebook 03).")
+        raise FileNotFoundError(f"No {MODEL_FILENAME} in {artifact_dir}. Train the model first (notebook 03 or 05).")
     saved = load_run(artifact_dir.name, artifact_dir.parent)
     return {
         "model": saved.model,

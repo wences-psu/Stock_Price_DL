@@ -25,7 +25,7 @@ TICKER = "AAPL"  # only used for titles/labels
 # ---------------------------------------------------------------------------
 # Running the notebooks
 # ---------------------------------------------------------------------------
-# RETRAIN = True  -> notebooks 03 and 06 train every model from scratch.
+# RETRAIN = True  -> notebooks 03 and 05 train every model from scratch.
 # RETRAIN = False -> they reload the models saved in artifacts/ by an earlier complete run.
 RETRAIN = True
 
@@ -56,13 +56,13 @@ TEST_RATIO = 0.15
 # for example "gru_close_volume".
 FEATURE_SETS = {"close": ["Close"], "close_volume": ["Close", "Volume"]}
 
-# Inputs used by the log-return experiment (notebook 06).
+# Inputs used by the log-return experiment (notebook 05).
 LOG_FEATURE_SETS = {"close": ["log_return"], "close_volume": ["log_return", "log_volume", "volume_change"]}
 
 # What the network learns to predict:
 #   "price":      tomorrow's closing price (scaled). Used by the six main models.
 #   "log_return": tomorrow's log return, ln(Close_{t+1} / Close_t). The price is
-#                 rebuilt afterwards as Close_t * exp(predicted_return). Used in notebook 06.
+#                 rebuilt afterwards as Close_t * exp(predicted_return). Used in notebook 05.
 TARGET_COLUMNS = {"price": "target_price", "log_return": "target_log_return"}
 TARGET_MODE = "price"
 
@@ -79,7 +79,7 @@ MODEL_NAMES = ("cnn", "lstm", "gru")  # all architectures used in the project
 
 EPOCHS = 100          # maximum passes over the training data (early stopping usually ends sooner)
 PATIENCE = 10         # epochs without validation improvement before early stopping
-TUNER_TRIALS = 20     # hyperparameter combinations tried in notebook 06
+TUNER_TRIALS = 20     # hyperparameter combinations tried in notebook 05
 
 # Settings shared by all six configurations.
 BASE_HPARAMS = {"units": 64, "kernel_size": 5, "dropout": 0.2, "learning_rate": 1e-3, "batch_size": 32}
