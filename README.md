@@ -8,6 +8,21 @@ The same project is also available as one self-contained notebook, [`notebooks/T
 
 ---
 
+## Project Team
+
+**Course:** DAAN 570 – Deep Learning
+
+**Institution:** Pennsylvania State University
+
+**Semester:** Fall 2026
+
+**Team:** Team 7
+
+**Team Members:**
+
+- Basma Hameid
+- Wenceslao Granados Gomez
+
 ## Project structure
 
 ```
